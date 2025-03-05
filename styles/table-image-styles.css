@@ -1,0 +1,78 @@
+/* styles/table-image-styles.css */
+
+/* 表格樣式增強 */
+.article-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    overflow-x: auto;
+    display: block;
+  }
+  
+  .article-content table th {
+    background-color: rgba(203, 160, 118, 0.1); /* 主題色淡化 */
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid #5A442C;
+  }
+  
+  .article-content table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #5A442C;
+    vertical-align: top;
+  }
+  
+  .article-content table tr:nth-child(even) {
+    background-color: rgba(49, 37, 21, 0.3);
+  }
+  
+  .article-content table tr:hover {
+    background-color: rgba(203, 160, 118, 0.05);
+  }
+  
+  /* 圖片容器 */
+  .image-container {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  
+  /* 圖片樣式 */
+  .article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* 圖片標題 */
+  .image-caption {
+    margin-top: 0.75rem;
+    font-style: italic;
+    color: rgba(242, 227, 208, 0.8);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  
+  /* 根據頁面寬度調整表格 */
+  @media (max-width: 768px) {
+    .article-content table {
+      font-size: 0.85rem;
+    }
+    
+    .article-content table th,
+    .article-content table td {
+      padding: 8px 12px;
+    }
+  }
+  
+  /* 表格標題 */
+  .article-content table caption {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: left;
+    color: var(--primary-color);
+  }
