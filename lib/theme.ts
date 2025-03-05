@@ -72,7 +72,7 @@ export const woodTheme = createTheme({
     '0px 8px 16px rgba(0, 0, 0, 0.05)',
     '0px 12px 24px rgba(0, 0, 0, 0.05)',
     ...Array(20).fill('none'),
-  ],
+  ] as any,
   components: {
     MuiCssBaseline: {
       styleOverrides: {

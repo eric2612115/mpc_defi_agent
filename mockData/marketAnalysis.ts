@@ -1,5 +1,5 @@
 // mockData/marketAnalysis.ts
-import { MarketAnalysis, MarketInsight } from '../models/MarketAnalysis';
+import { MarketAnalysis, MarketInsight, MarketInsightsResponse } from '../models/MarketAnalysis';
 
 // Mock detailed market analysis article
 export const mockMarketAnalysis: MarketAnalysis = {

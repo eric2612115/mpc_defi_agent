@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { address: string } }
-) {
-  try {
-    const address = params.address.toLowerCase();
-    
+export async function GET(request: NextRequest) {
+  const params = request.nextUrl.searchParams;
+  const address = params.get('address')?.toLowerCase();
+  if(!address) {
+    return NextResponse.json(
+      { error: 'Address is required' },
+      { status: 400 }
+    );
+  }
+  try {    
     // Make an API call to your FastAPI backend
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
     const response = await fetch(`${backendUrl}/api/agent-status/${address}`);
@@ -32,7 +35,7 @@ export async function GET(
     console.warn('⚠️ Returning mock agent status data for development');
     return NextResponse.json({
       has_agent: true,
-      multisig_address: `0xms${params.address.substring(2, 10)}`
+      multisig_address: `0xms${address.substring(2, 10)}`
     });
   }
 }

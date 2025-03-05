@@ -96,7 +96,7 @@ export default function Sidebar() {
 }, []);
 
   // Settings menu handlers
-  const handleSettingsClick = (event) => {
+  const handleSettingsClick = (event: any) => {
     setSettingsAnchorEl(event.currentTarget);
   };
 
@@ -105,7 +105,7 @@ export default function Sidebar() {
   };
 
   // Notification menu handlers
-  const handleNotificationClick = (event) => {
+  const handleNotificationClick = (event: any) => {
     setNotificationAnchorEl(event.currentTarget);
   };
 
@@ -119,7 +119,7 @@ export default function Sidebar() {
   };
 
   // Format address for display
-  const formatAddress = (address) => {
+  const formatAddress = (address: any) => {
     if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };

@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 
 // Header component with simplified design
-export default function Header({ hasAgent = false, onMenuToggle }) {
+export default function Header({ hasAgent = false, onMenuToggle }: any) {
   const theme = useTheme();
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [mounted, setMounted] = useState(false);

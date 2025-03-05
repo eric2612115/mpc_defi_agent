@@ -24,9 +24,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) =
       }}
     >
       <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        {React.cloneElement(icon as React.ReactElement, { 
-          sx: { fontSize: 60, mb: 2, color: theme.palette.primary.main }
-        })}
+        <div style={{ fontSize: 60, marginBottom: theme.spacing(2), color: theme.palette.primary.main }}>
+          {icon}
+        </div>
         <Typography variant="h5" gutterBottom>{title}</Typography>
         <Typography>{description}</Typography>
       </CardContent>

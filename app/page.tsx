@@ -517,7 +517,7 @@ const handleSignTransaction = async (data: any) => {
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         I can help you manage your portfolio and execute trades using natural language commands. 
-                        Simply describe what you want to do, and I'll handle the details.
+                        Simply describe what you want to do, and I&apos;ll handle the details.
                       </Typography>
                     </Box>
                   </Box>
