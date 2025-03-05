@@ -1,97 +1,115 @@
 # AI Trading Assistant
 
-一个基于Web3和AI的加密货币交易助手，提供自然语言交互、安全分析和智能交易执行功能。
+An AI-powered cryptocurrency trading assistant built on Web3, providing natural language interaction, secure analysis, and intelligent trade execution.
 
-## 环境设置
+## Environment Setup
 
-### 前端设置
+### Frontend Setup
 
-1. **创建环境变量文件**
+1.  **Create Environment Variables File**
 
-   创建一个名为`.env.local`的文件在项目根目录，添加以下内容：
+    Create a file named `.env.local` in the project's root directory and add the following content:
 
-   ```
-   # API配置
-   NEXT_PUBLIC_API_URL=http://0.0.0.0:8000
-   NEXT_PUBLIC_WS_URL=ws://0.0.0.0:8000/ws
+    ```
+    # API Configuration
+    NEXT_PUBLIC_API_URL=[http://0.0.0.0:8000](http://0.0.0.0:8000)
+    NEXT_PUBLIC_WS_URL=ws://0.0.0.0:8000/ws
 
-   # 开发模式配置
-   NEXT_PUBLIC_DEVELOPMENT_MODE=true
-   ```
+    # Development Mode Configuration
+    NEXT_PUBLIC_DEVELOPMENT_MODE=true
+    ```
 
-   在生产环境中，应该将`NEXT_PUBLIC_DEVELOPMENT_MODE`设置为`false`。
+    In a production environment, `NEXT_PUBLIC_DEVELOPMENT_MODE` should be set to `false`.
 
-2. **安装依赖**
+2.  **Install Dependencies**
 
-   ```bash
-   npm install
-   # 或
-   yarn
-   ```
+    ```bash
+    npm install
+    # or
+    yarn
+    ```
 
-3. **启动开发服务器**
+3.  **Start the Development Server**
 
-   ```bash
-   npm run dev
-   # 或
-   yarn dev
-   ```
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
 
-### 后端设置
+### Backend Setup
 
-1. **安装Python依赖**
+1.  **Install Python Dependencies**
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-2. **启动后端服务器**
+2.  **Start the Backend Server**
 
-   ```bash
-   python main.py
-   ```
+    ```bash
+    python main.py
+    ```
 
-## 开发模式
+## Development Mode
 
-在开发模式下，前端会绕过代理创建流程，即使后端没有运行，也可以访问所有页面。这可以通过设置环境变量`NEXT_PUBLIC_DEVELOPMENT_MODE=true`来启用。
+In development mode, the frontend bypasses the agent creation process, allowing access to all pages even if the backend is not running.  This can be enabled by setting the environment variable `NEXT_PUBLIC_DEVELOPMENT_MODE=true`.
 
-## API路由
+## API Routes
 
-- `GET /api/agent-status/:address` - 检查用户的代理状态
-- `POST /api/agent` - 创建新的AI代理
-- `GET /api/messages` - 获取用户的消息历史
-- `POST /api/deploy-multisig` - 部署多签钱包
-- `POST /api/user-signature` - 用户提交交易签名
-- `POST /api/user-reject-transaction` - 用户拒绝交易
+| Method | Route                       | Description                               |
+| :----- | :-------------------------- | :---------------------------------------- |
+| GET    | `/api/agent-status/:address` | Check the user's agent status.             |
+| POST   | `/api/agent`                | Create a new AI agent.                    |
+| GET    | `/api/messages`             | Get the user's message history.           |
+| POST   | `/api/deploy-multisig`      | Deploy a multi-signature wallet.          |
+| POST   | `/api/user-signature`       | User submits a transaction signature.     |
+| POST   | `/api/user-reject-transaction` | User rejects a transaction.                |
 
-## 项目结构
+## Project Structure
 
-- `app/` - Next.js应用页面
-  - `api/` - API路由处理程序
-  - `assets/` - 资产管理页面
-  - `daily-analysis/` - 每日分析页面
-  - `about/` - 关于页面
-- `components/` - React组件
-  - `layout/` - 布局组件
-  - `common/` - 通用组件
-  - `portfolio/` - 投资组合相关组件
-  - `analysis/` - 分析相关组件
-- `lib/` - 工具函数和API客户端
-- `public/` - 静态资源
-- `styles/` - 全局样式
+app/ # Next.js application pages
+api/ # API route handlers
+assets/ # Asset management page
+daily-analysis/ # Daily analysis page
+about/ # About page
+components/ # React components
+layout/ # Layout components
+common/ # Common components
+portfolio/ # Portfolio-related components
+analysis/ # Analysis-related components
+lib/ # Utility functions and API clients
+public/ # Static assets
+styles/ # Global styles
+Or, if you prefer a bulleted list for project structure:
 
-## 故障排除
+app/ (Next.js application pages)
+api/ (API route handlers)
+assets/ (Asset management page)
+daily-analysis/ (Daily analysis page)
+about/ (About page)
+components/ (React components)
+layout/ (Layout components)
+common/ (Common components)
+portfolio/ (Portfolio-related components)
+analysis/ (Analysis-related components)
+lib/ (Utility functions and API clients)
+public/ (Static assets)
+styles/ (Global styles)
 
-如果遇到API连接问题：
 
-1. 确保后端服务器正在运行
-2. 检查`.env.local`中的API_URL是否正确
-3. 查看浏览器控制台是否有CORS错误
-4. 在开发模式下，可以设置`NEXT_PUBLIC_DEVELOPMENT_MODE=true`以绕过API检查
+## Troubleshooting
 
-## 主要功能
+If you encounter API connection issues:
 
-- AI对话界面
-- 投资组合分析和管理
-- 每日市场分析
-- 基于MPC的安全交易执行
+1.  Ensure the backend server is running.
+2.  Check that the `NEXT_PUBLIC_API_URL` in `.env.local` is correct.
+3.  Check the browser console for CORS errors.
+4.  In development mode, you can set `NEXT_PUBLIC_DEVELOPMENT_MODE=true` to bypass API checks.
+
+## Key Features
+
+-   AI-powered conversational interface
+-   Portfolio analysis and management
+-   Daily market analysis
+-   Secure trade execution based on MPC (Multi-Party Computation)
