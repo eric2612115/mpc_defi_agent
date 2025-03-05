@@ -20,7 +20,8 @@ import {
   Menu,
   MenuItem,
   Typography,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 import {
   AccountCircle as AccountIcon,
@@ -37,12 +38,10 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-// /components/layout/Sidebar.tsx - 修改 import
-// 移除 useNetwork，改用 useAccount 獲取 chain，改用 useConfig 獲取 chains
 import { useAccount, useConfig, useDisconnect, useSwitchChain, useAccountEffect } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-import apiClient from '@/lib/apiClient'; // 確保引入 apiClient
+import apiClient from '@/lib/apiClient';
 
 // Sidebar width
 const drawerWidth = 240;
@@ -55,7 +54,12 @@ const allNavItems = [
   { label: 'About', href: '/about', icon: <InfoIcon fontSize="small" /> }
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isMobile?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProps) {
   const theme = useTheme();
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
@@ -73,11 +77,12 @@ export default function Sidebar() {
   const { chains } = useConfig();
   const { error: switchError, isPending: isSwitchingChain, switchChain } = useSwitchChain();
   const [hasAgent, setHasAgent] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  // State for total balance
+  const [totalBalance, setTotalBalance] = useState<string>("0");
+  const [loadingBalance, setLoadingBalance] = useState(false);
 
-
-  // 添加連接/斷開連接的效果
+  // Add connection/disconnection effect
   useAccountEffect({
     onConnect: async (data) => {
       if (data.address) {
@@ -85,6 +90,9 @@ export default function Sidebar() {
           console.log('Checking agent status after connection:', data.address);
           const response = await apiClient.checkAgentStatus(data.address);
           setHasAgent(response.data?.has_agent || false);
+          
+          // Fetch total balance when connected
+          fetchTotalBalance(data.address);
         } catch (err) {
           console.error('Error checking agent status:', err);
           setHasAgent(false);
@@ -93,10 +101,11 @@ export default function Sidebar() {
     },
     onDisconnect: () => {
       setHasAgent(null);
+      setTotalBalance("0");
     }
   });
 
-  // 新增切換網絡功能
+  // Add chain switching function
   const handleSwitchChain = (chainId: number) => {
     if (switchChain) {
       switchChain({ chainId });
@@ -109,11 +118,54 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
+  // Fetch total balance when user connects
+  useEffect(() => {
+    if (mounted && isConnected && address) {
+      fetchTotalBalance(address);
+    }
+  }, [mounted, isConnected, address]);
+
+  // Function to fetch total balance from API
+  const fetchTotalBalance = async (walletAddress: string) => {
+    setLoadingBalance(true);
+    try {
+      // Use the Next.js API route to avoid CORS issues
+      const response = await fetch('/api/total-balance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: walletAddress }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching total balance: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (data && data.data && data.data[0] && data.data[0].totalValue) {
+        // Format the total value to 2 decimal places
+        const formattedValue = parseFloat(data.data[0].totalValue).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        setTotalBalance(formattedValue);
+      } else {
+        console.log("No total value found in response:", data);
+        setTotalBalance("0.00");
+      }
+    } catch (error) {
+      console.error("Error fetching total balance:", error);
+      setTotalBalance("0.00");
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
+
   // Fetch ticker data every 30 seconds
   useEffect(() => {
     const fetchTickers = async () => {
       try {
-      // 使用環境變量中的API基本URL
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
         const response = await fetch(`${API_BASE_URL}/api/public-data/tickers`);
         const data = await response.json();
@@ -346,9 +398,6 @@ export default function Sidebar() {
                         fullWidth 
                         onClick={async () => {
                           openConnectModal();
-        
-                          // 這個效果會在用戶完成連接後觸發，但需要配合 useAccountEffect
-                          // 所以這裡只是一個備用方案
                         }}
                         size="small"
                         sx={{ 
@@ -384,7 +433,11 @@ export default function Sidebar() {
                 Balance
               </Typography>
               <Typography color="white" fontWeight={600} variant="subtitle2">
-                $12,435.89
+                {loadingBalance ? (
+                  <CircularProgress size={16} sx={{ color: 'white', mr: 1 }} />
+                ) : (
+                  `$${totalBalance}`
+                )}
               </Typography>
             </Box>
           ) : (

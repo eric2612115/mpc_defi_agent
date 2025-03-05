@@ -62,14 +62,16 @@ export async function checkAgentStatus(walletAddress: string): Promise<ApiRespon
     console.warn('⚠️ Using mock data for agent status');
     return {
       data: {
-        has_agent: true,
+        has_agent: true,  // <-- This is returning TRUE
         multisig_address: `0xms${walletAddress.substring(2, 10)}`
       },
       status: 200
     };
   }
-    
-  return fetchApi<{ has_agent: boolean, multisig_address?: string }>(`/api/user-status?wallet_address=${walletAddress}`);
+  
+  const res= fetchApi<{ has_agent: boolean, multisig_address?: string }>(`/api/user-status?wallet_address=${walletAddress}`);
+  console.log(res);
+  return res;
 }
   
 /**

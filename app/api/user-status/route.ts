@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     console.error('Error checking agent status:', error);
     
     // 開發模式回傳模擬數據
-    console.warn('⚠️ Returning mock agent status data for development');
+    console.warn('Returning mock agent status data for development');
     return NextResponse.json({
       has_agent: false,
       multisig_address: null

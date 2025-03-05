@@ -5,10 +5,12 @@ import { Alert, Box, CircularProgress, Snackbar, useMediaQuery } from '@mui/mate
 import { useTheme } from '@mui/material/styles';
 import { useAccount } from 'wagmi';
 import Header from './Header';
+import MobileHeader from './MobileHeader'; // Import the new mobile header
 import Sidebar from './Sidebar';
 import ConnectWalletPrompt from '../common/ConnectWalletPrompt';
 import CreateAgentPrompt from '../common/CreateAgentPrompt';
 import apiClient from '../../lib/apiClient';
+
 interface MainLayoutProps {
   children: React.ReactNode;
   showSidebar?: boolean;
@@ -53,6 +55,7 @@ export default function MainLayout({
         }
         
         setHasAgent(response.data?.has_agent || false);
+        console.log("MainLayout: Agent status check result:", response.data?.has_agent);
       } catch (err) {
         console.error('Error checking agent status:', err);
         setError('Unable to check agent status. Please try again later.');
@@ -115,7 +118,7 @@ export default function MainLayout({
   if (requireWallet && !isConnected) {
     return (
       <>
-        <Header hasAgent={hasAgent} />
+        {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
         <ConnectWalletPrompt />
       </>
     );
@@ -125,7 +128,7 @@ export default function MainLayout({
   if (requireAgent && !hasAgent && isConnected) {
     return (
       <>
-        <Header hasAgent={hasAgent} />
+        {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
         <CreateAgentPrompt onCreateAgent={handleCreateAgent} />
       </>
     );
@@ -140,8 +143,8 @@ export default function MainLayout({
         bgcolor: theme.palette.background.default,
       }}
     >
-      {/* Top navigation bar */}
-      <Header hasAgent={hasAgent} />
+      {/* Top navigation - different component for mobile vs desktop */}
+      {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
       
       {/* Main content area */}
       <Box
@@ -151,7 +154,7 @@ export default function MainLayout({
           pt: { xs: 8, sm: 9 } // Space for top nav bar
         }}
       >
-        {/* Left sidebar (if enabled) */}
+        {/* Left sidebar (only show on desktop and when enabled) */}
         {showSidebar && !isMobile && (
           <Sidebar />
         )}

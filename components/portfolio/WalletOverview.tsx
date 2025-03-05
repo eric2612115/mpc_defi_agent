@@ -5,15 +5,15 @@ import {
   IconButton, Tooltip, Typography, useTheme
 } from '@mui/material';
 import {
-  Add as AddIcon,
   ArrowDropUp as ArrowUpIcon,
   Check as CheckIcon,
   ContentCopy as CopyIcon,
   Send as SendIcon,
-  SwapHoriz as SwapIcon
+  SwapHoriz as SwapIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 
-// 錢包類型定義
+// Wallet type definition
 export interface Wallet {
   address: string;
   totalValue: number;
@@ -74,15 +74,17 @@ const WalletOverview: React.FC<WalletOverviewProps> = ({ wallet, onDeposit }) =>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
             <Typography sx={{ mb: 0.5 }} variant="h5">
-              ${wallet.totalValue.toLocaleString()}
+              ${wallet.totalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </Typography>
-            <Chip 
-              color="success" 
-              icon={<ArrowUpIcon />} 
-              label={`${wallet.change24h}% today`} 
-              size="small"
-              sx={{ fontWeight: 500 }}
-            />
+            {wallet.change24h !== 0 && (
+              <Chip 
+                color={wallet.change24h >= 0 ? "success" : "error"} 
+                icon={wallet.change24h >= 0 ? <ArrowUpIcon /> : undefined} 
+                label={`${wallet.change24h >= 0 ? '+' : ''}${wallet.change24h}% today`} 
+                size="small"
+                sx={{ fontWeight: 500 }}
+              />
+            )}
           </Box>
         </Box>
       </Box>

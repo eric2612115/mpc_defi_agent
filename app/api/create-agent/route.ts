@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ wallet_address }),
+      //body should like{"wallet_address": "string"}
+      body: JSON.stringify(body),
     });
     
     if (!response.ok) {

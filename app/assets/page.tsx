@@ -1,4 +1,4 @@
-// app/portfolio/page.tsx
+// app/assets/page.tsx
 'use client';
 import React, { useEffect, useState } from 'react';
 import {
@@ -22,39 +22,50 @@ import type { Asset } from '@/components/portfolio/AssetTable';
 import type { Transaction } from '@/components/portfolio/TransactionHistory';
 import type { Wallet } from '@/components/portfolio/WalletOverview';
 
-// 模擬數據
-const eoa_assets: Asset[] = [
+// API response types
+interface AssetResponse {
+  chain: string;
+  chainIndex: string;
+  symbol: string;
+  balance: string;
+  tokenPrice: string;
+  value: string;
+  tokenAddress: string;
+  tokenType: string;
+  isRiskToken: boolean;
+  icon: string | null;
+  transferAmount: string;
+  availableAmount: string;
+}
+
+interface TransactionResponse {
+  chain: string;
+  chainIndex: string;
+  txHash: string;
+  type: string;
+  details: string;
+  amount: string;
+  value: string;
+  time: string;
+  status: string;
+  icon: string | null;
+  tokenAddress: string;
+  hitBlacklist: boolean;
+  itype: string;
+  tag: string;
+}
+
+interface BalanceResponse {
+  code: string;
+  msg: string;
+  data: [{ totalValue: string }];
+}
+
+// For mock data when needed
+const mockAssets: Asset[] = [
   { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 2.5, price: 3500, value: 8750, change24h: 1.2, logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
   { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 5000, price: 1, value: 5000, change24h: 0, logoUrl: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
   { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 100, price: 15, value: 1500, change24h: -0.5, logoUrl: 'https://cryptologos.cc/logos/chainlink-link-logo.png' },
-  { id: '4', name: 'Uniswap', symbol: 'UNI', balance: 50, price: 8, value: 400, change24h: 2.3, logoUrl: 'https://cryptologos.cc/logos/uniswap-uni-logo.png' },
-  { id: '5', name: 'Aave', symbol: 'AAVE', balance: 10, price: 90, value: 900, change24h: 1.8, logoUrl: 'https://cryptologos.cc/logos/aave-aave-logo.png' },
-];
-
-const multisig_assets: Asset[] = [
-  { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 1.2, price: 3500, value: 4200, change24h: 1.2, logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
-  { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 2500, price: 1, value: 2500, change24h: 0, logoUrl: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
-  { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 50, price: 15, value: 750, change24h: -0.5, logoUrl: 'https://cryptologos.cc/logos/chainlink-link-logo.png' },
-];
-
-const wallets: Record<string, Wallet> = {
-  personal: {
-    address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    totalValue: 16550,
-    change24h: 1.2
-  },
-  multisig: {
-    address: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-    totalValue: 7450,
-    change24h: 0.8
-  }
-};
-
-const transactionHistory: Transaction[] = [
-  { hash: '0x1234...5678', type: 'Swap', from: 'ETH', to: 'USDC', amount: '0.5 ETH', value: '$1,750', timestamp: '2025-03-05 09:23', status: 'completed' },
-  { hash: '0xabcd...efgh', type: 'Receive', from: 'External', to: 'Personal Wallet', amount: '100 LINK', value: '$1,500', timestamp: '2025-03-04 18:42', status: 'completed' },
-  { hash: '0x8765...4321', type: 'Send', from: 'Personal Wallet', to: '0x4321...8765', amount: '500 USDC', value: '$500', timestamp: '2025-03-03 12:15', status: 'completed' },
-  { hash: '0xijkl...mnop', type: 'Swap', from: 'USDC', to: 'ETH', amount: '1000 USDC', value: '$1,000', timestamp: '2025-03-02 10:37', status: 'completed' },
 ];
 
 export default function PortfolioPage() {
@@ -69,10 +80,211 @@ export default function PortfolioPage() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [successAlert, setSuccessAlert] = useState(false);
 
-  // 修復水合問題
+  // Data states
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [walletData, setWalletData] = useState<Wallet | null>(null);
+  
+  // Loading states
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [loadingWallet, setLoadingWallet] = useState(false);
+  
+  // Error states
+  const [errorAssets, setErrorAssets] = useState<string | null>(null);
+  const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
+  const [errorWallet, setErrorWallet] = useState<string | null>(null);
+
+  // Fix hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch data when wallet is connected
+  useEffect(() => {
+    if (mounted && isConnected && address) {
+      fetchAllData();
+    }
+  }, [mounted, isConnected, address, tabValue]);
+
+  // Fetch all data from APIs
+  const fetchAllData = async () => {
+    fetchAssets();
+    fetchTransactions();
+    fetchWalletOverview();
+  };
+
+  // Fetch assets data using Next.js API route as proxy
+  const fetchAssets = async () => {
+    if (!address) return;
+    
+    setLoadingAssets(true);
+    setErrorAssets(null);
+    
+    try {
+      const response = await fetch('/api/total-balance-detail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${response.status}`);
+      }
+      
+      const data = await response.json() as AssetResponse[];
+      
+      // Format the data to match the Asset interface
+      const formattedAssets: Asset[] = data.map((item, index) => ({
+        id: index.toString(),
+        name: item.symbol, // Using symbol as name since the API doesn't provide a separate name
+        symbol: item.symbol,
+        balance: parseFloat(item.balance) || 0,
+        price: parseFloat(item.tokenPrice) || 0,
+        value: parseFloat(item.value) || 0,
+        change24h: 0, // API doesn't provide 24h change, default to 0
+        logoUrl: item.icon || undefined,
+        chain: item.chain,
+        tokenAddress: item.tokenAddress
+      }));
+      
+      setAssets(formattedAssets);
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+      setErrorAssets('Failed to load assets. Please try again later.');
+      
+      // Use mock data in case of error for development
+      setAssets(mockAssets);
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
+
+  // Fetch transaction history using Next.js API route as proxy
+  const fetchTransactions = async () => {
+    if (!address) return;
+    
+    setLoadingTransactions(true);
+    setErrorTransactions(null);
+    
+    try {
+      const response = await fetch('/api/wallet-transaction-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${response.status}`);
+      }
+      
+      const data = await response.json() as TransactionResponse[];
+      
+      // Format the data to match the Transaction interface
+      const formattedTransactions: Transaction[] = data.map(item => {
+        const parsedAmount = item.amount.split(' ');
+        
+        return {
+          hash: item.txHash,
+          type: item.type as 'Swap' | 'Send' | 'Receive',
+          from: item.type === 'Receive' ? 'External' : 'Personal Wallet',
+          to: item.type === 'Send' ? 'External' : 'Personal Wallet',
+          amount: item.amount,
+          value: item.value ? `$${item.value}` : `${parsedAmount[0]} ${parsedAmount[1] || ''}`,
+          timestamp: item.time,
+          status: item.status.toLowerCase() as 'pending' | 'completed' | 'failed' | 'success',
+          chain: item.chain,
+          details: item.details
+        };
+      });
+      
+      setTransactions(formattedTransactions);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setErrorTransactions('Failed to load transaction history. Please try again later.');
+      
+      // Use empty array in case of error
+      setTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
+  // Fetch wallet overview data using Next.js API route as proxy
+  const fetchWalletOverview = async () => {
+    if (!address) return;
+  
+    setLoadingWallet(true);
+    setErrorWallet(null);
+  
+    try {
+      const response = await fetch('/api/total-balance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${response.status}`);
+      }
+    
+      const data = await response.json();
+    
+      // More defensive parsing of the response
+      let totalValue = 0;
+    
+      // Check the structure of the response data
+      if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+      // Direct access to totalValue if available
+        if (data.data[0] && typeof data.data[0].totalValue === 'string') {
+          totalValue = parseFloat(data.data[0].totalValue);
+        }
+      } else if (data && typeof data.totalValue === 'string') {
+      // Alternative structure
+        totalValue = parseFloat(data.totalValue);
+      } else if (data && typeof data.totalValue === 'number') {
+      // Already a number
+        totalValue = data.totalValue;
+      } else {
+        console.log("Unexpected response format:", data);
+      }
+    
+      // Ensure totalValue is a valid number
+      if (isNaN(totalValue)) {
+        totalValue = 0;
+      }
+    
+      // Format the wallet data
+      const formattedWallet: Wallet = {
+        address: address,
+        totalValue: totalValue,
+        change24h: 0, // API doesn't provide 24h change, default to 0
+      };
+    
+      setWalletData(formattedWallet);
+    } catch (error) {
+      console.error('Error fetching wallet overview:', error);
+      setErrorWallet('Failed to load wallet data. Please try again later.');
+    
+      // Use mock wallet data in case of error
+      setWalletData({
+        address: address,
+        totalValue: 0,
+        change24h: 0
+      });
+    } finally {
+      setLoadingWallet(false);
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -80,10 +292,10 @@ export default function PortfolioPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    // 模擬刷新
-    setTimeout(() => {
+    // Fetch fresh data
+    fetchAllData().finally(() => {
       setRefreshing(false);
-    }, 1500);
+    });
   };
 
   const handleDepositOpen = () => {
@@ -97,7 +309,7 @@ export default function PortfolioPage() {
   const handleDepositSubmit = (token: string, amount: string) => {
     console.log('Depositing', amount, token);
     handleDepositClose();
-    // 顯示成功消息
+    // Show success message
     setSuccessAlert(true);
     setTimeout(() => setSuccessAlert(false), 5000);
   };
@@ -107,20 +319,20 @@ export default function PortfolioPage() {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
-      setSortDirection('desc'); // 默認降序
+      setSortDirection('desc'); // Default to descending order
     }
   };
 
-  // 基於搜索和排序過濾資產
+  // Filter and sort assets based on search and sort settings
   const filterAndSortAssets = (assets: Asset[]) => {
-    // 先過濾
+    // First filter
     const filtered = assets.filter(
       asset => 
         asset.name.toLowerCase().includes(search.toLowerCase()) || 
         asset.symbol.toLowerCase().includes(search.toLowerCase())
     );
     
-    // 排序 (按照指定的列和方向)
+    // Then sort
     return [...filtered].sort((a, b) => {
       const aValue = a[sortColumn as keyof Asset];
       const bValue = b[sortColumn as keyof Asset];
@@ -137,10 +349,9 @@ export default function PortfolioPage() {
     });
   };
 
-  const currentAssets = tabValue === 0 ? eoa_assets : multisig_assets;
-  const filteredAssets = filterAndSortAssets(currentAssets);
-  const currentWallet = tabValue === 0 ? wallets.personal : wallets.multisig;
+  const filteredAssets = filterAndSortAssets(assets);
 
+  // Show loading skeletons or empty state when not mounted
   if (!mounted) {
     return null;
   }
@@ -195,7 +406,7 @@ export default function PortfolioPage() {
           </Box>
         ) : (
           <>
-            {/* 成功提示 */}
+            {/* Success alert */}
             {successAlert && (
               <Alert 
                 onClose={() => setSuccessAlert(false)} 
@@ -207,10 +418,20 @@ export default function PortfolioPage() {
               </Alert>
             )}
             
-            {/* 錢包概覽 */}
-            <WalletOverview onDeposit={handleDepositOpen} wallet={currentWallet} />
+            {/* Wallet overview */}
+            {loadingWallet ? (
+              <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress />
+              </Box>
+            ) : errorWallet ? (
+              <Alert severity="error" sx={{ mb: 4 }}>
+                {errorWallet}
+              </Alert>
+            ) : walletData ? (
+              <WalletOverview onDeposit={handleDepositOpen} wallet={walletData} />
+            ) : null}
 
-            {/* 標籤頁 */}
+            {/* Tabs */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
               <Tabs 
                 TabIndicatorProps={{
@@ -239,7 +460,7 @@ export default function PortfolioPage() {
               </Tabs>
             </Box>
 
-            {/* 搜索和操作按鈕 */}
+            {/* Search and action buttons */}
             <Box 
               sx={{ 
                 display: 'flex', 
@@ -273,7 +494,7 @@ export default function PortfolioPage() {
               
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <IconButton 
-                  disabled={refreshing}
+                  disabled={refreshing || loadingAssets || loadingTransactions || loadingWallet}
                   onClick={handleRefresh}
                   size="small"
                   sx={{ 
@@ -305,18 +526,38 @@ export default function PortfolioPage() {
               </Box>
             </Box>
 
-            {/* 資產表格 */}
-            <AssetTable 
-              assets={filteredAssets} 
-              onSort={handleSort} 
-              sortColumn={sortColumn} 
-              sortDirection={sortDirection} 
-            />
+            {/* Asset table */}
+            {loadingAssets ? (
+              <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress />
+              </Box>
+            ) : errorAssets ? (
+              <Alert severity="error" sx={{ mb: 4 }}>
+                {errorAssets}
+              </Alert>
+            ) : (
+              <AssetTable 
+                assets={filteredAssets} 
+                onSort={handleSort} 
+                sortColumn={sortColumn} 
+                sortDirection={sortDirection} 
+              />
+            )}
 
-            {/* 交易歷史 */}
-            <TransactionHistory transactions={transactionHistory} />
+            {/* Transaction history */}
+            {loadingTransactions ? (
+              <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress />
+              </Box>
+            ) : errorTransactions ? (
+              <Alert severity="error" sx={{ mb: 4 }}>
+                {errorTransactions}
+              </Alert>
+            ) : (
+              <TransactionHistory transactions={transactions} />
+            )}
 
-            {/* 存款對話框 */}
+            {/* Deposit dialog */}
             <DepositDialog 
               onClose={handleDepositClose} 
               onSubmit={handleDepositSubmit} 
