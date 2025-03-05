@@ -127,13 +127,13 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
   const renderMessageTypeLabel = () => {
     switch (message.message_type) {
       case 'thinking':
-        return <Chip size="small" label={message.phase || "思考"} color="primary" sx={{ mb: 1 }} />;
+        return <Chip color="primary" label={message.phase || "思考"} size="small" sx={{ mb: 1 }} />;
       case 'tool_call':
-        return <Chip size="small" label={`工具: ${message.tool?.name}`} color="info" sx={{ mb: 1 }} />;
+        return <Chip color="info" label={`工具: ${message.tool?.name}`} size="small" sx={{ mb: 1 }} />;
       case 'transaction':
-        return <Chip size="small" label="交易" color="secondary" sx={{ mb: 1 }} />;
+        return <Chip color="secondary" label="交易" size="small" sx={{ mb: 1 }} />;
       case 'error':
-        return <Chip size="small" label="錯誤" color="error" sx={{ mb: 1 }} />;
+        return <Chip color="error" label="錯誤" size="small" sx={{ mb: 1 }} />;
       default:
         return null;
     }
@@ -161,14 +161,14 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
                     // 列表項
                     return (
                       <Box key={`item-${pIndex}`} sx={{ display: 'flex', ml: 1, mb: 0.5 }}>
-                        <Typography variant="body1" sx={{ mr: 1 }}>•</Typography>
+                        <Typography sx={{ mr: 1 }} variant="body1">•</Typography>
                         <Typography variant="body1">{part.replace(/^[-*] /, '')}</Typography>
                       </Box>
                     );
                   } else {
                     // 普通文本
                     return (
-                      <Typography key={`text-${pIndex}`} variant="body1" sx={{ mb: 1 }}>
+                      <Typography key={`text-${pIndex}`} sx={{ mb: 1 }} variant="body1">
                         {part}
                       </Typography>
                     );
@@ -179,7 +179,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
           } else {
             // 普通段落，保留單個換行符
             return (
-              <Typography key={index} variant="body1" sx={{ mb: 1.5, whiteSpace: 'pre-line' }}>
+              <Typography key={index} sx={{ mb: 1.5, whiteSpace: 'pre-line' }} variant="body1">
                 {paragraph}
               </Typography>
             );
@@ -197,13 +197,13 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     
     return (
       <Box sx={{ mt: 2, mb: 2, p: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), borderRadius: 1 }}>
-        <Typography variant="subtitle2" gutterBottom>投資組合分配:</Typography>
+        <Typography gutterBottom variant="subtitle2">投資組合分配:</Typography>
         
         {message.summary.portfolio.map((item, index) => (
           <Box key={index} sx={{ mb: 1.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
               <Typography variant="body2">{item.symbol}</Typography>
-              <Typography variant="body2" fontWeight={500}>{item.allocation}%</Typography>
+              <Typography fontWeight={500} variant="body2">{item.allocation}%</Typography>
             </Box>
             
             {/* 分配比例條 */}
@@ -218,7 +218,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
               />
             </Box>
             
-            <Typography variant="caption" color="text.secondary">
+            <Typography color="text.secondary" variant="caption">
               安全評分: {item.security_score}
             </Typography>
           </Box>
@@ -235,12 +235,12 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
       <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         {message.action.type === 'confirm' && (
           <Button
-            variant="contained"
-            size="small"
             color="success"
             onClick={() => onConfirmTransaction?.(message.action?.data)}
+            size="small"
             startIcon={<CheckCircleIcon />}
             sx={{ borderRadius: 1.5 }}
+            variant="contained"
           >
             {message.action.text}
           </Button>
@@ -248,11 +248,11 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         
         {message.action.type === 'info' && (
           <Button
-            variant="outlined"
-            size="small"
             color="info"
+            size="small"
             startIcon={<InfoIcon />}
             sx={{ borderRadius: 1.5 }}
+            variant="outlined"
           >
             {message.action.text}
           </Button>
@@ -260,11 +260,11 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         
         {message.action.type === 'need_user_signature' && (
           <Button
-            variant="contained"
-            size="small"
             color="primary"
             onClick={() => onSignTransaction?.(message.action?.data)}
+            size="small"
             sx={{ borderRadius: 1.5 }}
+            variant="contained"
           >
             {message.action.text}
           </Button>
@@ -272,22 +272,22 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         
         {message.action.type === 'submitted' && message.action.tx_hash && (
           <Chip 
-            icon={<CheckCircleIcon />} 
+            color="success" 
+            icon={<CheckCircleIcon />}
             label={`Tx: ${message.action.tx_hash.substring(0, 6)}...${message.action.tx_hash.substring(38)}`}
-            color="success"
             size="small"
             sx={{ fontFamily: 'monospace' }}
           />
         )}
         
         {message.action.type === 'completed' && (
-          <Typography variant="body2" color="success.main">
+          <Typography color="success.main" variant="body2">
             {message.action.text}
           </Typography>
         )}
         
         {message.action.type === 'rejected' && (
-          <Typography variant="body2" color="error.main">
+          <Typography color="error.main" variant="body2">
             {message.action.text}
           </Typography>
         )}
@@ -300,7 +300,8 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     if (!message.status) return null;
     
     return (
-      <Box sx={{
+      <Box
+        sx={{
         display: 'flex',
         alignItems: 'center',
         mt: 1,
@@ -309,7 +310,8 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
           : message.status === 'error'
             ? 'error.main'
             : 'info.main'
-      }}>
+      }}
+      >
         {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
         {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}
         {message.status === 'error' && <CancelIcon fontSize="small" sx={{ mr: 1 }} />}
@@ -352,13 +354,13 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         {renderActions()}
         
         <Typography
-          variant="caption"
           sx={{
             display: 'block',
             mt: 1,
             textAlign: message.sender === 'user' ? 'right' : 'left',
             opacity: 0.7,
           }}
+          variant="caption"
         >
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Typography>

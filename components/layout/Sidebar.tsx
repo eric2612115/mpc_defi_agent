@@ -150,6 +150,7 @@ export default function Sidebar() {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
             {/* Bell icon instead of robot avatar */}
             <IconButton
+              onClick={handleNotificationClick}
               size="small"
               sx={{
                 bgcolor: '#F2E6C7',
@@ -159,7 +160,6 @@ export default function Sidebar() {
                 mr: 1.5,
                 '&:hover': { bgcolor: '#F2E6C7' },
               }}
-              onClick={handleNotificationClick}
             >
               <Badge badgeContent={3} color="error">
                 <NotificationsIcon fontSize="small" />
@@ -167,15 +167,15 @@ export default function Sidebar() {
             </IconButton>
             
             <Box>
-              <Typography variant="subtitle2" fontWeight={600} color="white">
+              <Typography color="white" fontWeight={600} variant="subtitle2">
                 WiseAI
               </Typography>
               {mounted && isConnected && address ? (
-                <Typography variant="caption" color={alpha('#fff', 0.8)}>
+                <Typography color={alpha('#fff', 0.8)} variant="caption">
                   {formatAddress(address)}
                 </Typography>
               ) : (
-                <Typography variant="caption" color={alpha('#fff', 0.8)}>
+                <Typography color={alpha('#fff', 0.8)} variant="caption">
                   Not connected
                 </Typography>
               )}
@@ -183,30 +183,30 @@ export default function Sidebar() {
             
             {/* Settings Icon */}
             <IconButton
+              onClick={handleSettingsClick}
               size="small"
               sx={{
                 ml: 'auto',
                 color: 'white',
                 '&:hover': { bgcolor: alpha('#fff', 0.1) },
               }}
-              onClick={handleSettingsClick}
             >
               <SettingsIcon fontSize="small" />
             </IconButton>
             
             {/* Notifications Menu */}
             <Menu
-              anchorEl={notificationAnchorEl}
-              open={Boolean(notificationAnchorEl)}
-              onClose={handleNotificationClose}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               PaperProps={{
                 sx: { width: 280, mt: 1.5 }
               }}
+              anchorEl={notificationAnchorEl}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              onClose={handleNotificationClose}
+              open={Boolean(notificationAnchorEl)}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               <Box sx={{ p: 2, borderBottom: '1px solid #E6D6A9' }}>
-                <Typography variant="subtitle1" fontWeight={600}>Notifications</Typography>
+                <Typography fontWeight={600} variant="subtitle1">Notifications</Typography>
               </Box>
               <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
                 <ListItemIcon>
@@ -214,8 +214,8 @@ export default function Sidebar() {
                 </ListItemIcon>
                 <ListItemText 
                   primary="AI Agent Created"
-                  secondary="Your AI trading assistant is ready"
                   primaryTypographyProps={{ fontWeight: 500 }}
+                  secondary="Your AI trading assistant is ready"
                 />
               </MenuItem>
               <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
@@ -224,8 +224,8 @@ export default function Sidebar() {
                 </ListItemIcon>
                 <ListItemText 
                   primary="New Market Analysis"
-                  secondary="Check the latest USDC market analysis"
                   primaryTypographyProps={{ fontWeight: 500 }}
+                  secondary="Check the latest USDC market analysis"
                 />
               </MenuItem>
               <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
@@ -234,22 +234,22 @@ export default function Sidebar() {
                 </ListItemIcon>
                 <ListItemText 
                   primary="Transaction Successful"
-                  secondary="Your transaction was completed"
                   primaryTypographyProps={{ fontWeight: 500 }}
+                  secondary="Your transaction was completed"
                 />
               </MenuItem>
               <Box sx={{ p: 1, borderTop: '1px solid #E6D6A9', textAlign: 'center' }}>
-                <Typography variant="caption" color="primary">View All Notifications</Typography>
+                <Typography color="primary" variant="caption">View All Notifications</Typography>
               </Box>
             </Menu>
             
             {/* Settings Menu */}
             <Menu
               anchorEl={settingsAnchorEl}
-              open={Boolean(settingsAnchorEl)}
-              onClose={handleSettingsClose}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              onClose={handleSettingsClose}
+              open={Boolean(settingsAnchorEl)}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               {mounted && isConnected ? [
                 <MenuItem key="account">
@@ -284,17 +284,16 @@ export default function Sidebar() {
                 border: `1px solid ${alpha('#fff', 0.1)}`,
               }}
             >
-              <Typography variant="caption" color={alpha('#fff', 0.9)}>
+              <Typography color={alpha('#fff', 0.9)} variant="caption">
                 Balance
               </Typography>
-              <Typography variant="subtitle2" fontWeight={600} color="white">
+              <Typography color="white" fontWeight={600} variant="subtitle2">
                 $12,435.89
               </Typography>
             </Box>
           ) : (
             <Button 
-              variant="contained" 
-              fullWidth
+              fullWidth 
               size="small"
               sx={{ 
                 bgcolor: alpha('#fff', 0.2), 
@@ -302,6 +301,7 @@ export default function Sidebar() {
                 '&:hover': { bgcolor: alpha('#fff', 0.3) },
                 mt: 1
               }}
+              variant="contained"
             >
               Connect Wallet
             </Button>
@@ -312,7 +312,7 @@ export default function Sidebar() {
       {/* All navigation items in a single list */}
       <List sx={{ px: 2 }}>
         {allNavItems.map((item) => (
-          <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
+          <ListItem disablePadding key={item.label} sx={{ mb: 0.5 }}>
             <Link href={item.href} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
               <ListItemButton
                 selected={pathname === item.href}
@@ -365,7 +365,7 @@ export default function Sidebar() {
 
       {/* Market trends widget */}
       <Box sx={{ px: 3, py: 1 }}>
-        <Typography variant="subtitle2" color="#7D6547" gutterBottom>
+        <Typography color="#7D6547" gutterBottom variant="subtitle2">
           Trending Tokens
         </Typography>
         {tokenData.map((token) => (
@@ -393,35 +393,37 @@ export default function Sidebar() {
                 {token.id.toUpperCase()}
               </Avatar>
               <Box>
-                <Typography variant="body2" fontWeight={500}>
+                <Typography fontWeight={500} variant="body2">
                   {token.symbol}
                 </Typography>
-                <Typography variant="caption" color="#7D6547">
+                <Typography color="#7D6547" variant="caption">
                   {token.name}
                 </Typography>
               </Box>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="body1" fontWeight={500}>
+              <Typography fontWeight={500} variant="body1">
                 ${token.price.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
               </Typography>
-              <Box sx={{ 
+              <Box
+                sx={{ 
                 display: 'flex', 
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 color: token.change >= 0 ? '#2E7D32' : '#D32F2F'
-              }}>
+              }}
+              >
                 {token.change >= 0 ? 
                   <ArrowUpIcon fontSize="small" /> : 
                   <ArrowDownIcon fontSize="small" />
                 }
                 <Typography 
-                  variant="caption" 
+                  color="inherit" 
                   fontWeight={500}
-                  color="inherit"
+                  variant="caption"
                 >
                   {Math.abs(token.change).toFixed(2)}%
                 </Typography>
@@ -432,8 +434,7 @@ export default function Sidebar() {
         <Box sx={{ mt: 2 }}>
           <Button 
             fullWidth 
-            variant="outlined" 
-            size="small"
+            size="small" 
             sx={{ 
               borderRadius: 4,
               py: 0.5,
@@ -442,6 +443,7 @@ export default function Sidebar() {
               color: '#B07941',
               borderColor: '#B07941'
             }}
+            variant="outlined"
           >
             View More Trends
           </Button>
@@ -452,7 +454,6 @@ export default function Sidebar() {
 
   return (
     <Drawer
-      variant="permanent"
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -467,6 +468,7 @@ export default function Sidebar() {
           overflow: 'hidden'
         },
       }}
+      variant="permanent"
     >
       <Box sx={{ height: '100%', overflow: 'auto', pb: 2 }}>
         {sidebarContent}

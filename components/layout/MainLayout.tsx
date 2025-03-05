@@ -148,21 +148,25 @@ export default function MainLayout({
   }
 
   return (
-    <Box sx={{ 
+    <Box
+      sx={{ 
       display: 'flex', 
       flexDirection: 'column',
       minHeight: '100vh',
       bgcolor: theme.palette.background.default,
-    }}>
+    }}
+    >
       {/* Top navigation bar */}
       <Header hasAgent={hasAgent} />
       
       {/* Main content area */}
-      <Box sx={{ 
+      <Box
+        sx={{ 
         display: 'flex', 
         flexGrow: 1,
         pt: { xs: 8, sm: 9 } // Space for top nav bar
-      }}>
+      }}
+      >
         {/* Left sidebar (if enabled) */}
         {showSidebar && !isMobile && (
           <Sidebar />
@@ -183,10 +187,10 @@ export default function MainLayout({
       
       {/* Error notification */}
       <Snackbar 
-        open={!!error} 
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} 
         autoHideDuration={6000} 
         onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={!!error}
       >
         <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
           {error}

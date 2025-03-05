@@ -109,44 +109,48 @@ export default function AboutPage() {
   ];
 
   return (
-    <MainLayout requireWallet={false} requireAgent={false}>
+    <MainLayout requireAgent={false} requireWallet={false}>
       <Container maxWidth="lg">
         {/* Hero Section */}
-        <Box sx={{ 
+        <Box
+          sx={{ 
           textAlign: 'center', 
           mb: 6, 
           pt: 4
-        }}>
-          <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
+        }}
+        >
+          <Typography component="h1" fontWeight={700} gutterBottom variant="h3">
             About AI Trading Assistant
           </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mb: 4 }}>
+          <Typography color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mb: 4 }} variant="h6">
             Combining advanced AI technology with blockchain security to provide a safe, 
             intuitive trading experience for cryptocurrency enthusiasts.
           </Typography>
-          <Box sx={{ 
+          <Box
+            sx={{ 
             display: 'flex', 
             justifyContent: 'center', 
             gap: 2, 
             flexWrap: 'wrap'
-          }}>
+          }}
+          >
             <Chip 
+              color="primary" 
               icon={<SmartToyIcon />} 
               label="AI-Powered" 
-              color="primary" 
               sx={{ fontSize: '1rem', py: 2, px: 1 }}
             />
             <Chip 
+              color="primary" 
               icon={<SecurityIcon />} 
               label="MPC Security" 
-              color="primary" 
-              variant="outlined"
               sx={{ fontSize: '1rem', py: 2, px: 1 }}
+              variant="outlined"
             />
             <Chip 
+              color="secondary" 
               icon={<LanguageIcon />} 
               label="Natural Language Trading" 
-              color="secondary" 
               sx={{ fontSize: '1rem', py: 2, px: 1 }}
             />
           </Box>
@@ -156,16 +160,16 @@ export default function AboutPage() {
         
         {/* Key Features */}
         <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" component="h2" gutterBottom fontWeight={600}>
+          <Typography component="h2" fontWeight={600} gutterBottom variant="h4">
             Key Features
           </Typography>
           <Grid container spacing={3}>
             {features.map((feature, index) => (
-              <Grid item xs={12} md={4} key={index}>
+              <Grid item key={index} md={4} xs={12}>
                 <FeatureCard 
+                  description={feature.description}
                   icon={feature.icon}
                   title={feature.title}
-                  description={feature.description}
                 />
               </Grid>
             ))}
@@ -174,7 +178,7 @@ export default function AboutPage() {
         
         {/* How It Works */}
         <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" component="h2" gutterBottom fontWeight={600}>
+          <Typography component="h2" fontWeight={600} gutterBottom variant="h4">
             How It Works
           </Typography>
           <Card 
@@ -191,11 +195,11 @@ export default function AboutPage() {
         
         {/* Technology Stack */}
         <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" component="h2" gutterBottom fontWeight={600}>
+          <Typography component="h2" fontWeight={600} gutterBottom variant="h4">
             Technology Stack
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid item md={6} xs={12}>
               <Card 
                 sx={{ 
                   height: '100%', 
@@ -205,13 +209,13 @@ export default function AboutPage() {
                 <CardContent>
                   <TechList 
                     icon={<CodeIcon color="primary" />} 
-                    title="Frontend" 
                     items={frontendTech} 
+                    title="Frontend" 
                   />
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item md={6} xs={12}>
               <Card 
                 sx={{ 
                   height: '100%', 
@@ -221,8 +225,8 @@ export default function AboutPage() {
                 <CardContent>
                   <TechList 
                     icon={<ArchitectureIcon color="primary" />} 
-                    title="Backend" 
                     items={backendTech} 
+                    title="Backend" 
                   />
                 </CardContent>
               </Card>

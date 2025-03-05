@@ -27,7 +27,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) =
         <div style={{ fontSize: 60, marginBottom: theme.spacing(2), color: theme.palette.primary.main }}>
           {icon}
         </div>
-        <Typography variant="h5" gutterBottom>{title}</Typography>
+        <Typography gutterBottom variant="h5">{title}</Typography>
         <Typography>{description}</Typography>
       </CardContent>
     </Card>

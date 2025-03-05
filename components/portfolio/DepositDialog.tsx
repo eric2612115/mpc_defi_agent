@@ -50,7 +50,7 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog fullWidth maxWidth="xs" onClose={handleClose} open={open}>
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           Deposit Tokens
@@ -64,10 +64,10 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
           <FormControl fullWidth sx={{ mb: 3 }}>
             <InputLabel id="token-select-label">Select Token</InputLabel>
             <Select
-              labelId="token-select-label"
-              value={selectedToken}
               label="Select Token"
+              labelId="token-select-label"
               onChange={handleTokenChange}
+              value={selectedToken}
             >
               {availableTokens.map((token) => (
                 <MenuItem key={token.value} value={token.value}>
@@ -78,34 +78,34 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
           </FormControl>
           
           <TextField
-            fullWidth
-            label="Amount"
-            variant="outlined"
-            type="number"
-            value={depositAmount}
-            onChange={(e) => setDepositAmount(e.target.value)}
-            sx={{ mb: 2 }}
             InputProps={{
               endAdornment: selectedToken ? (
                 <InputAdornment position="end">{selectedToken}</InputAdornment>
               ) : null,
             }}
+            fullWidth
+            label="Amount"
+            onChange={(e) => setDepositAmount(e.target.value)}
+            sx={{ mb: 2 }}
+            type="number"
+            value={depositAmount}
+            variant="outlined"
           />
           
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography color="text.secondary" sx={{ mb: 2 }} variant="body2">
             Deposit your tokens to the {walletType} wallet. The transaction will be processed on the blockchain.
           </Typography>
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={handleClose} variant="outlined" sx={{ borderRadius: 2 }}>
+        <Button onClick={handleClose} sx={{ borderRadius: 2 }} variant="outlined">
           Cancel
         </Button>
         <Button 
+          disabled={!selectedToken || !depositAmount} 
           onClick={handleSubmit} 
-          variant="contained" 
-          disabled={!selectedToken || !depositAmount}
           sx={{ borderRadius: 2 }}
+          variant="contained"
         >
           Deposit
         </Button>

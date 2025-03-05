@@ -108,7 +108,7 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                 <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
                   {listItems.map((item, j) => (
                     <li key={j}>
-                      <Typography variant="body1" component="span">
+                      <Typography component="span" variant="body1">
                         {item.replace(/^[-*]\s/, '')}
                       </Typography>
                     </li>
@@ -122,11 +122,11 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
           return (
             <Typography 
               key={i} 
-              variant="body1" 
               sx={{ 
                 mb: 1.5,
                 whiteSpace: 'pre-line' // Preserve single newlines
-              }}
+              }} 
+              variant="body1"
             >
               {paragraph}
             </Typography>
@@ -219,27 +219,27 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
     if (message.message_type === 'tool_call') {
       return (
         <Chip 
-          size="small" 
-          label="Processing" 
           color="info" 
+          label="Processing" 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
     } else if (message.message_type === 'thinking') {
       return (
         <Chip 
-          size="small" 
-          label="Thinking" 
           color="secondary" 
+          label="Thinking" 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
     } else if (message.message_type === 'transaction') {
       return (
         <Chip 
-          size="small" 
-          label="Transaction" 
           color="primary" 
+          label="Transaction" 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
@@ -255,8 +255,8 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
     return (
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle2" fontWeight={600}>Token Allocation</Typography>
-          <IconButton size="small" onClick={() => setShowTokens(!showTokens)}>
+          <Typography fontWeight={600} variant="subtitle2">Token Allocation</Typography>
+          <IconButton onClick={() => setShowTokens(!showTokens)} size="small">
             {showTokens ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </IconButton>
         </Box>
@@ -275,7 +275,7 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                 {message.tokens.map((token, index) => (
                   <TableRow key={index}>
                     <TableCell>
-                      <Typography variant="body2" fontWeight={500}>
+                      <Typography fontWeight={500} variant="body2">
                         {token.symbol}
                       </Typography>
                     </TableCell>
@@ -284,8 +284,6 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                     </TableCell>
                     <TableCell align="right">
                       <Chip 
-                        label={token.security_score || 'N/A'} 
-                        size="small"
                         color={
                           typeof token.security_score === 'number' || typeof token.security_score === 'string' 
                             ? Number(token.security_score) >= 7 
@@ -294,7 +292,9 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                                 ? 'warning' 
                                 : 'error'
                             : 'default'
-                        }
+                        } 
+                        label={token.security_score || 'N/A'}
+                        size="small"
                         sx={{ minWidth: 30 }}
                       />
                     </TableCell>
@@ -313,8 +313,6 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                   <Typography variant="caption">{token.allocation}%</Typography>
                 </Box>
                 <LinearProgress 
-                  variant="determinate" 
-                  value={token.allocation || 0} 
                   sx={{ 
                     height: 6, 
                     borderRadius: 1,
@@ -327,6 +325,8 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                           : theme.palette.error.main
                     }
                   }} 
+                  value={token.allocation || 0} 
+                  variant="determinate" 
                 />
               </Box>
             ))}
@@ -343,8 +343,8 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
     return (
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle2" fontWeight={600}>Analysis Details</Typography>
-          <IconButton size="small" onClick={() => setShowDetails(!showDetails)}>
+          <Typography fontWeight={600} variant="subtitle2">Analysis Details</Typography>
+          <IconButton onClick={() => setShowDetails(!showDetails)} size="small">
             {showDetails ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </IconButton>
         </Box>
@@ -352,9 +352,9 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
         <Collapse in={showDetails}>
           {message.analysis.security_analysis && (
             <Alert 
+              icon={<SecurityIcon />}
               severity={message.analysis.safe_to_execute ? "success" : "warning"}
               sx={{ mb: 2, borderRadius: 1 }}
-              icon={<SecurityIcon />}
             >
               <Typography variant="subtitle2">Security Analysis</Typography>
               <Typography variant="body2">{message.analysis.security_analysis}</Typography>
@@ -364,13 +364,15 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
             </Alert>
           )}
           
-          <Box sx={{ 
+          <Box
+            sx={{ 
             p: 1.5, 
             bgcolor: alpha(theme.palette.primary.main, 0.05),
             borderRadius: 1,
             mb: 2
-          }}>
-            <Typography variant="caption" color="text.secondary">Transaction Details</Typography>
+          }}
+          >
+            <Typography color="text.secondary" variant="caption">Transaction Details</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
               {message.analysis.source_token && (
                 <Chip 
@@ -414,28 +416,32 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
     return (
       <Box sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle2" fontWeight={600}>AI Thinking Process</Typography>
-          <IconButton size="small" onClick={() => setShowThinking(!showThinking)}>
+          <Typography fontWeight={600} variant="subtitle2">AI Thinking Process</Typography>
+          <IconButton onClick={() => setShowThinking(!showThinking)} size="small">
             {showThinking ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </IconButton>
         </Box>
         
         <Collapse in={showThinking}>
-          <Box sx={{ 
+          <Box
+            sx={{ 
             border: `1px solid ${theme.palette.divider}`, 
             borderRadius: 1,
             mb: 2,
             overflow: 'hidden'
-          }}>
+          }}
+          >
             {message.thinking_steps.map((step, index) => (
               <Box key={index}>
                 {index > 0 && <Divider />}
-                <Box sx={{ 
+                <Box
+                  sx={{ 
                   p: 1.5, 
                   bgcolor: index % 2 === 0 
                     ? 'transparent' 
                     : alpha(theme.palette.background.default, 0.5) 
-                }}>
+                }}
+                >
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Chip 
                       label={step.phase} 
@@ -446,9 +452,9 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
                         bgcolor: alpha(theme.palette.primary.main, 0.1),
                       }}
                     />
-                    <Typography variant="body2" fontWeight={500}>{step.question}</Typography>
+                    <Typography fontWeight={500} variant="body2">{step.question}</Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ pl: 1 }}>{step.answer}</Typography>
+                  <Typography color="text.secondary" sx={{ pl: 1 }} variant="body2">{step.answer}</Typography>
                 </Box>
               </Box>
             ))}
@@ -470,17 +476,17 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
     return (
       <Box sx={{ mt: 2, mb: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="caption" color="text.secondary">
+          <Typography color="text.secondary" variant="caption">
             {step_name || `Processing step ${current_step} of ${total_steps}`}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography color="text.secondary" variant="caption">
             {Math.round(progress)}%
           </Typography>
         </Box>
         <LinearProgress 
-          variant="determinate" 
+          sx={{ height: 4, borderRadius: 2 }} 
           value={progress} 
-          sx={{ height: 4, borderRadius: 2 }}
+          variant="determinate"
         />
       </Box>
     );
@@ -518,7 +524,8 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
 
         {/* Status indicator */}
         {message.status && (
-          <Box sx={{
+          <Box
+            sx={{
             display: 'flex',
             alignItems: 'center',
             mt: 1,
@@ -527,7 +534,8 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
               : message.status === 'error'
                 ? 'error.main'
                 : 'info.main'
-          }}>
+          }}
+          >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}
             {message.status === 'error' && <CancelIcon fontSize="small" sx={{ mr: 1 }} />}
@@ -543,54 +551,54 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
           <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             {message.action.type === 'confirm' && (
               <Button
-                variant="contained"
-                size="small"
                 color="success"
                 onClick={handleActionButton}
+                size="small"
                 startIcon={<CheckCircleIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'info' && (
               <Button
-                variant="outlined"
-                size="small"
                 color="info"
+                size="small"
                 startIcon={<InfoIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="outlined"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'need_user_signature' && (
               <Button
-                variant="contained"
-                size="small"
                 color="primary"
                 onClick={handleActionButton}
+                size="small"
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'submitted' && message.action.tx_hash && (
               <Chip 
-                icon={<CheckCircleIcon />} 
+                color="success" 
+                icon={<CheckCircleIcon />}
                 label={`Tx: ${message.action.tx_hash.substring(0, 6)}...${message.action.tx_hash.substring(38)}`}
-                color="success"
                 size="small"
                 sx={{ fontFamily: 'monospace' }}
               />
             )}
             {message.action.type === 'completed' && (
-              <Typography variant="body2" color="success.main">
+              <Typography color="success.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
             {message.action.type === 'rejected' && (
-              <Typography variant="body2" color="error.main">
+              <Typography color="error.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
@@ -598,13 +606,13 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
         )}
 
         <Typography
-          variant="caption"
           sx={{
             display: 'block',
             mt: 1,
             textAlign: message.sender === 'user' ? 'right' : 'left',
             opacity: 0.7,
           }}
+          variant="caption"
         >
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Typography>

@@ -96,16 +96,17 @@ export default function DailyAnalysisPage() {
     <MainLayout>
       <Box>
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography component="h1" gutterBottom variant="h4">
             Daily Market Analysis
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography color="text.secondary" variant="body1">
             Expert insights and in-depth analysis of cryptocurrency market trends.
           </Typography>
         </Box>
 
         {!isConnected ? (
-          <Box sx={{ 
+          <Box
+            sx={{ 
             textAlign: 'center', 
             py: 8,
             display: 'flex',
@@ -115,12 +116,13 @@ export default function DailyAnalysisPage() {
             bgcolor: alpha(theme.palette.background.paper, 0.4),
             borderRadius: 2,
             border: `1px solid ${theme.palette.divider}`
-          }}>
+          }}
+          >
             <InfoIcon sx={{ fontSize: 48, color: theme.palette.text.secondary, mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
+            <Typography gutterBottom variant="h6">
               Please connect your wallet to view market analysis
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500 }}>
+            <Typography color="text.secondary" sx={{ maxWidth: 500 }} variant="body2">
               Connect your wallet to access AI-generated market analysis, real-time insights, and trading recommendations.
             </Typography>
           </Box>
@@ -129,8 +131,8 @@ export default function DailyAnalysisPage() {
             {/* 日期選項卡 */}
             <DateTabs 
               dates={datesData} 
-              selectedIndex={dateTab} 
               onChange={handleDateChange} 
+              selectedIndex={dateTab} 
             />
 
             {/* 加載狀態 */}
@@ -145,9 +147,9 @@ export default function DailyAnalysisPage() {
                   }} 
                 />
                 <Typography 
-                  variant="caption" 
                   color="text.secondary" 
-                  sx={{ display: 'block', mt: 1, textAlign: 'center' }}
+                  sx={{ display: 'block', mt: 1, textAlign: 'center' }} 
+                  variant="caption"
                 >
                   Loading market analysis...
                 </Typography>
@@ -155,18 +157,20 @@ export default function DailyAnalysisPage() {
             ) : (
               <Grid container spacing={3}>
                 {/* 主要分析文章 */}
-                <Grid item xs={12} md={8}>
+                <Grid item md={8} xs={12}>
                   {marketAnalysis ? (
                     <MarketArticleCard article={marketAnalysis} expanded={true} />
                   ) : (
-                    <Box sx={{ 
+                    <Box
+                      sx={{ 
                       p: 4, 
                       textAlign: 'center',
                       bgcolor: alpha(theme.palette.background.paper, 0.4),
                       borderRadius: 2,
                       border: `1px solid ${theme.palette.divider}`
-                    }}>
-                      <Typography variant="body1" color="text.secondary">
+                    }}
+                    >
+                      <Typography color="text.secondary" variant="body1">
                         No market analysis available for this date
                       </Typography>
                     </Box>
@@ -174,12 +178,12 @@ export default function DailyAnalysisPage() {
                 </Grid>
                 
                 {/* 市場見解側欄 */}
-                <Grid item xs={12} md={4}>
+                <Grid item md={4} xs={12}>
                   <MarketInsightsFeed 
                     insights={marketInsights}
                     isLoading={insightsLoading}
-                    onRefresh={handleRefreshInsights}
                     lastUpdated={lastUpdated}
+                    onRefresh={handleRefreshInsights}
                   />
                 </Grid>
               </Grid>

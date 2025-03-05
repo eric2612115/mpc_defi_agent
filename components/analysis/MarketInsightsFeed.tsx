@@ -51,11 +51,11 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
   // Get icon for importance level
   const getImportanceIcon = (importance: 'low' | 'medium' | 'high') => {
     if (importance === 'high') {
-      return <ErrorIcon fontSize="small" color="error" />;
+      return <ErrorIcon color="error" fontSize="small" />;
     } else if (importance === 'medium') {
-      return <TrendingUpIcon fontSize="small" color="primary" />;
+      return <TrendingUpIcon color="primary" fontSize="small" />;
     } else {
-      return <InfoIcon fontSize="small" color="action" />;
+      return <InfoIcon color="action" fontSize="small" />;
     }
   };
   
@@ -92,22 +92,22 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
           bgcolor: alpha(theme.palette.background.paper, 0.6)
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
+        <Typography fontWeight={600} variant="h6">
           Market Insights
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {lastUpdated && (
-            <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+            <Typography color="text.secondary" sx={{ mr: 1 }} variant="caption">
               Updated: {formatTimeAgo(lastUpdated)}
             </Typography>
           )}
           
           <Tooltip title="Refresh insights">
             <IconButton 
-              size="small"
-              onClick={onRefresh}
               disabled={isLoading}
+              onClick={onRefresh}
+              size="small"
             >
               {isLoading ? 
                 <CircularProgress size={20} /> : 
@@ -158,6 +158,13 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
             {insights.map((insight) => (
               <React.Fragment key={insight._id}>
                 <ListItem 
+                  onClick={() => {
+                    if (insight.url) {
+                      window.open(insight.url, '_blank');
+                    } else {
+                      setExpanded(expanded === insight._id ? null : insight._id);
+                    }
+                  }}
                   sx={{ 
                     py: 2, 
                     px: 2, 
@@ -166,13 +173,6 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
                       bgcolor: alpha(theme.palette.primary.main, 0.08)
                     },
                     cursor: insight.url ? 'pointer' : 'default'
-                  }}
-                  onClick={() => {
-                    if (insight.url) {
-                      window.open(insight.url, '_blank');
-                    } else {
-                      setExpanded(expanded === insight._id ? null : insight._id);
-                    }
                   }}
                 >
                   <Box sx={{ display: 'flex', width: '100%' }}>
@@ -205,15 +205,15 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
                         </Box>
                         
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography color="text.secondary" variant="caption">
                             {formatTimeAgo(insight.publishedAt)}
                           </Typography>
                           
                           {insight.source && (
                             <Typography 
-                              variant="caption" 
-                              color="text.secondary"
+                              color="text.secondary" 
                               sx={{ ml: 1 }}
+                              variant="caption"
                             >
                               • {insight.source}
                             </Typography>
@@ -249,9 +249,9 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
         }}
       >
         <Button 
-          variant="outlined" 
-          size="small"
+          size="small" 
           sx={{ textTransform: 'none', borderRadius: 2 }}
+          variant="outlined"
         >
           View All Updates
         </Button>

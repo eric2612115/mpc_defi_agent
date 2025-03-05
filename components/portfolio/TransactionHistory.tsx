@@ -26,7 +26,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
 
   return (
     <Box sx={{ mb: 4 }}>
-      <Typography variant="h6" gutterBottom>
+      <Typography gutterBottom variant="h6">
         Recent Transactions
       </Typography>
       <TableContainer 
@@ -52,8 +52,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography variant="body1" sx={{ py: 4 }}>
+                <TableCell align="center" colSpan={6}>
+                  <Typography sx={{ py: 4 }} variant="body1">
                     No transactions found
                   </Typography>
                 </TableCell>
@@ -85,7 +85,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                           `${tx.from} → ${tx.to}`
                         }
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography color="text.secondary" variant="caption">
                         {tx.hash}
                       </Typography>
                     </Box>
@@ -96,7 +96,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="body2" fontWeight={500}>
+                    <Typography fontWeight={500} variant="body2">
                       {tx.value}
                     </Typography>
                   </TableCell>
@@ -107,9 +107,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                   </TableCell>
                   <TableCell align="right">
                     <Chip 
-                      label={tx.status} 
+                      color={tx.status === 'completed' ? 'success' : tx.status === 'failed' ? 'error' : 'default'} 
+                      label={tx.status}
                       size="small"
-                      color={tx.status === 'completed' ? 'success' : tx.status === 'failed' ? 'error' : 'default'}
                       sx={{ textTransform: 'capitalize' }}
                     />
                   </TableCell>

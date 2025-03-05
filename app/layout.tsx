@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSans.variable}`}>
+    <html className={`${inter.variable} ${sourceSans.variable}`} lang="en">
       <body>
         <Providers>
           <ThemeWrapper>

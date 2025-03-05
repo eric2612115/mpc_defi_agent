@@ -28,8 +28,8 @@ const TokenChip: React.FC<{ token: Token }> = ({ token }) => {
       avatar={
         token.logoUrl ? (
           <Avatar 
-            src={token.logoUrl} 
-            alt={token.symbol}
+            alt={token.symbol} 
+            src={token.logoUrl}
             sx={{ width: 20, height: 20 }}
           />
         ) : (
@@ -68,13 +68,13 @@ const TokenChip: React.FC<{ token: Token }> = ({ token }) => {
           </Box>
         </Box>
       }
+      size="small"
       sx={{ 
         mr: 1, 
         mb: 1,
         border: token.highlighted ? `1px solid ${theme.palette.primary.main}` : undefined,
         bgcolor: token.highlighted ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.background.paper, 0.7)
       }}
-      size="small"
     />
   );
 };
@@ -126,10 +126,10 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
     >
       {/* Cover Image */}
       <CardMedia
+        alt={article.title}
         component="img"
         height={200}
         image={article.coverImage}
-        alt={article.title}
         sx={{ objectFit: 'cover' }}
       />
       
@@ -154,19 +154,19 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
         </Box>
         
         {/* Title */}
-        <Typography variant="h5" component="h2" gutterBottom fontWeight={600}>
+        <Typography component="h2" fontWeight={600} gutterBottom variant="h5">
           {article.title}
         </Typography>
         
         {/* Author & Metadata */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar 
-            src={article.author.avatar} 
             alt={article.author.name} 
+            src={article.author.avatar} 
             sx={{ width: 32, height: 32, mr: 1 }}
           />
           <Box>
-            <Typography variant="subtitle2" fontWeight={500}>
+            <Typography fontWeight={500} variant="subtitle2">
               {article.author.name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
@@ -191,21 +191,24 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
         </Box>
         
         {/* Content Preview or Full Content */}
-        <Box sx={{ 
+        <Box
+          sx={{ 
           mb: 2, 
           color: 'text.secondary', 
           position: 'relative',
           overflow: isFullContentVisible ? 'auto' : 'hidden'
-        }}>
+        }}
+        >
           {expanded || isFullContentVisible ? (
-            <Box sx={{ 
+            <Box
+              sx={{ 
               maxHeight: isFullContentVisible ? 'none' : 150, 
               overflow: isFullContentVisible ? 'visible' : 'hidden', 
               position: 'relative'
-            }}>
+            }}
+            >
               <Box className="article-content">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
                   components={{
                     img: ({ ...props }) => (
                       // 使用 span 而不是 Box 來避免 hydration 錯誤
@@ -219,13 +222,15 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
                           }} 
                         />
                         {props.alt && (
-                          <span style={{ 
+                          <span
+                            style={{ 
                             display: 'block', 
                             marginTop: '8px', 
                             color: theme.palette.text.secondary, 
                             fontStyle: 'italic',
                             fontSize: '0.875rem'
-                          }}>
+                          }}
+                          >
                             {props.alt}
                           </span>
                         )}
@@ -267,29 +272,32 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
                     a: ({ ...props }) => (
                       <a 
                         {...props} 
-                        style={{ color: theme.palette.primary.main, textDecoration: 'none' }}
+                        rel="noopener noreferrer"
+                        style={{ color: theme.palette.primary.main, textDecoration: 'none' }} 
                         target="_blank" 
-                        rel="noopener noreferrer" 
                       />
                     )
                   }}
+                  remarkPlugins={[remarkGfm]}
                 >
                   {previewContent}
                 </ReactMarkdown>
               </Box>
               {!isFullContentVisible && (
-                <Box sx={{ 
+                <Box
+                  sx={{ 
                   position: 'absolute', 
                   bottom: 0, 
                   left: 0, 
                   right: 0, 
                   height: 60, 
                   background: `linear-gradient(to bottom, ${alpha(theme.palette.background.paper, 0)}, ${theme.palette.background.paper})` 
-                }} />
+                }}
+                />
               )}
             </Box>
           ) : (
-            <Typography variant="body2" paragraph>
+            <Typography paragraph variant="body2">
               {previewContent}
             </Typography>
           )}
@@ -297,7 +305,7 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
         
         {/* Featured Tokens */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography gutterBottom variant="subtitle2">
             Featured Tokens
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -309,8 +317,8 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
               <Chip 
                 label={`+${article.featuredTokens.length - 3} more`}
                 size="small"
-                variant="outlined"
                 sx={{ mr: 1, mb: 1 }}
+                variant="outlined"
               />
             )}
           </Box>

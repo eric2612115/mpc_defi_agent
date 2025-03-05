@@ -118,23 +118,28 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
           <Box>
             <Box sx={{ mb: 4, textAlign: 'center' }}>
               <SecurityIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
-              <Typography variant="h5" fontWeight={600} gutterBottom>
+              <Typography fontWeight={600} gutterBottom variant="h5">
                 Secure Your Assets with MPC Technology
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+              <Typography color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }} variant="body1">
                 The AI Trading Assistant uses Multi-Party Computation (MPC) to create a secure 2/2 
                 signature wallet. Both you and the AI must approve any transaction.
               </Typography>
             </Box>
 
-            <Box sx={{ 
+            <Box
+              sx={{ 
               display: 'grid', 
               gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, 
               gap: 3,
               mb: 4
-            }}>
+            }}
+            >
               {securityFeatures.map((feature, index) => (
-                <Card key={index} elevation={0} sx={{ 
+                <Card
+                  elevation={0}
+                  key={index}
+                  sx={{ 
                   border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                   borderRadius: 2,
                   transition: 'all 0.2s ease',
@@ -143,15 +148,16 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                     borderColor: alpha(theme.palette.primary.main, 0.5),
                     transform: 'translateY(-2px)'
                   }
-                }}>
+                }}
+                >
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <CheckIcon color="success" fontSize="small" sx={{ mr: 1 }} />
-                      <Typography variant="subtitle1" fontWeight={600}>
+                      <Typography fontWeight={600} variant="subtitle1">
                         {feature.name}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography color="text.secondary" variant="body2">
                       {feature.description}
                     </Typography>
                   </CardContent>
@@ -161,7 +167,6 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
 
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Button
-                variant="contained"
                 color="primary"
                 onClick={handleNext}
                 size="large"
@@ -172,6 +177,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                   minWidth: 200,
                   boxShadow: theme.customShadows.button
                 }}
+                variant="contained"
               >
                 Continue
               </Button>
@@ -184,23 +190,28 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
           <Box>
             <Box sx={{ mb: 4, textAlign: 'center' }}>
               <SmartToyIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
-              <Typography variant="h5" fontWeight={600} gutterBottom>
+              <Typography fontWeight={600} gutterBottom variant="h5">
                 Create Your Personal AI Trading Assistant
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+              <Typography color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }} variant="body1">
                 Your AI assistant will help you manage your portfolio, analyze market trends, 
                 and execute trades based on your instructions.
               </Typography>
             </Box>
 
-            <Box sx={{ 
+            <Box
+              sx={{ 
               display: 'grid', 
               gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, 
               gap: 3,
               mb: 4
-            }}>
+            }}
+            >
               {aiFeatures.map((feature, index) => (
-                <Card key={index} elevation={0} sx={{ 
+                <Card
+                  elevation={0}
+                  key={index}
+                  sx={{ 
                   border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                   borderRadius: 2,
                   transition: 'all 0.2s ease',
@@ -209,15 +220,16 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                     borderColor: alpha(theme.palette.primary.main, 0.5),
                     transform: 'translateY(-2px)'
                   }
-                }}>
+                }}
+                >
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <CheckIcon color="success" fontSize="small" sx={{ mr: 1 }} />
-                      <Typography variant="subtitle1" fontWeight={600}>
+                      <Typography fontWeight={600} variant="subtitle1">
                         {feature.name}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography color="text.secondary" variant="body2">
                       {feature.description}
                     </Typography>
                   </CardContent>
@@ -227,20 +239,19 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
 
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
               <Button
-                variant="outlined"
                 onClick={handleBack}
                 sx={{ 
                   px: 3,
                   borderRadius: 2,
                 }}
+                variant="outlined"
               >
                 Back
               </Button>
               <Button
-                variant="contained"
                 color="primary"
-                onClick={handleCreateAgent}
                 disabled={loading}
+                onClick={handleCreateAgent}
                 startIcon={loading ? <CircularProgress size={20} /> : <SmartToyIcon />}
                 sx={{ 
                   px: 4,
@@ -249,6 +260,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                   minWidth: 200,
                   boxShadow: theme.customShadows.button
                 }}
+                variant="contained"
               >
                 {loading ? 'Creating Agent...' : 'Create AI Agent'}
               </Button>
@@ -260,21 +272,24 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
         return (
           <Box>
             <Box sx={{ mb: 4, textAlign: 'center' }}>
-              <CheckIcon sx={{ 
+              <CheckIcon
+                sx={{ 
                 fontSize: 60, 
                 color: theme.palette.success.main, 
                 mb: 2,
                 bgcolor: alpha(theme.palette.success.main, 0.1),
                 p: 1,
                 borderRadius: '50%'
-              }} />
-              <Typography variant="h5" fontWeight={600} gutterBottom>
+              }}
+              />
+              <Typography fontWeight={600} gutterBottom variant="h5">
                 AI Agent Created Successfully!
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 1, maxWidth: 600, mx: 'auto' }}>
+              <Typography color="text.secondary" sx={{ mb: 1, maxWidth: 600, mx: 'auto' }} variant="body1">
                 Your AI Trading Assistant is now ready to use. A new MPC wallet has been created.
               </Typography>
-              <Typography variant="subtitle2" sx={{ 
+              <Typography
+                sx={{ 
                 p: 1.5, 
                 bgcolor: alpha(theme.palette.primary.main, 0.1),
                 borderRadius: 1,
@@ -282,18 +297,23 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                 mx: 'auto',
                 fontFamily: 'monospace',
                 mt: 2
-              }}>
+              }}
+                variant="subtitle2"
+              >
                 MPC Wallet Address: {agentAddress}
               </Typography>
             </Box>
 
-            <Card elevation={0} sx={{ 
+            <Card
+              elevation={0}
+              sx={{ 
               mb: 4,
               border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
               borderRadius: 2,
-            }}>
+            }}
+            >
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                <Typography fontWeight={600} gutterBottom variant="subtitle1">
                   Next Steps:
                 </Typography>
                 <List disablePadding>
@@ -330,7 +350,6 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
 
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
               <Button
-                variant="outlined"
                 component="a"
                 href="/assets"
                 startIcon={<WalletIcon />}
@@ -338,11 +357,11 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                   px: 3,
                   borderRadius: 2,
                 }}
+                variant="outlined"
               >
                 View Wallet
               </Button>
               <Button
-                variant="contained"
                 color="primary"
                 component="a"
                 href="/"
@@ -354,6 +373,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                   minWidth: 200,
                   boxShadow: theme.customShadows.button
                 }}
+                variant="contained"
               >
                 Start Using AI Assistant
               </Button>

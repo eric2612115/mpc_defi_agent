@@ -44,11 +44,11 @@ const StepList: React.FC<StepListProps> = ({ steps }) => {
             </ListItemIcon>
             <ListItemText
               primary={step.title}
-              secondary={step.description}
               primaryTypographyProps={{ fontWeight: 600, gutterBottom: true }}
+              secondary={step.description}
             />
           </ListItem>
-          {index < steps.length - 1 && <Divider variant="inset" component="li" />}
+          {index < steps.length - 1 && <Divider component="li" variant="inset" />}
         </React.Fragment>
       ))}
     </List>

@@ -20,7 +20,7 @@ const TechList: React.FC<TechListProps> = ({ icon, title, items }) => {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         {icon}
-        <Typography variant="h6" sx={{ ml: 1 }}>{title}</Typography>
+        <Typography sx={{ ml: 1 }} variant="h6">{title}</Typography>
       </Box>
       <List dense>
         {items.map((item, index) => (

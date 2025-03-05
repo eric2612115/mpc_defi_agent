@@ -149,16 +149,17 @@ export default function PortfolioPage() {
     <MainLayout>
       <Box>
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography component="h1" gutterBottom variant="h4">
             Portfolio
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography color="text.secondary" variant="body1">
             Manage your assets across your personal wallet and multi-signature wallets.
           </Typography>
         </Box>
 
         {!isConnected ? (
-          <Box sx={{ 
+          <Box
+            sx={{ 
             textAlign: 'center', 
             py: 8,
             display: 'flex',
@@ -168,7 +169,8 @@ export default function PortfolioPage() {
             bgcolor: alpha(theme.palette.background.paper, 0.4),
             borderRadius: 2,
             border: `1px solid ${theme.palette.divider}`
-          }}>
+          }}
+          >
             <Box
               sx={{
                 bgcolor: alpha(theme.palette.primary.main, 0.1),
@@ -184,10 +186,10 @@ export default function PortfolioPage() {
             >
               <WalletIcon fontSize="large" />
             </Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography gutterBottom variant="h6">
               Please connect your wallet to view your assets
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500, mb: 3 }}>
+            <Typography color="text.secondary" sx={{ maxWidth: 500, mb: 3 }} variant="body2">
               Connect your wallet to manage your assets, view your portfolio, and execute trades using the AI Trading Assistant.
             </Typography>
           </Box>
@@ -196,9 +198,9 @@ export default function PortfolioPage() {
             {/* 成功提示 */}
             {successAlert && (
               <Alert 
-                severity="success" 
+                onClose={() => setSuccessAlert(false)} 
+                severity="success"
                 sx={{ mb: 3 }}
-                onClose={() => setSuccessAlert(false)}
               >
                 <AlertTitle>Success</AlertTitle>
                 Your deposit request has been processed successfully
@@ -206,19 +208,19 @@ export default function PortfolioPage() {
             )}
             
             {/* 錢包概覽 */}
-            <WalletOverview wallet={currentWallet} onDeposit={handleDepositOpen} />
+            <WalletOverview onDeposit={handleDepositOpen} wallet={currentWallet} />
 
             {/* 標籤頁 */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
               <Tabs 
-                value={tabValue} 
-                onChange={handleTabChange}
                 TabIndicatorProps={{
                   style: {
                     backgroundColor: theme.palette.primary.main,
                     height: 3
                   }
-                }}
+                }} 
+                onChange={handleTabChange}
+                value={tabValue}
               >
                 <Tab 
                   label="Personal Wallet" 
@@ -248,18 +250,6 @@ export default function PortfolioPage() {
               }}
             >
               <TextField
-                placeholder="Search assets..."
-                variant="outlined"
-                size="small"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ 
-                  flexGrow: 1, 
-                  maxWidth: { xs: '100%', sm: 300 },
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  }
-                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -267,12 +257,24 @@ export default function PortfolioPage() {
                     </InputAdornment>
                   ),
                 }}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search assets..."
+                size="small"
+                sx={{ 
+                  flexGrow: 1, 
+                  maxWidth: { xs: '100%', sm: 300 },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+                value={search}
+                variant="outlined"
               />
               
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <IconButton 
-                  onClick={handleRefresh}
                   disabled={refreshing}
+                  onClick={handleRefresh}
                   size="small"
                   sx={{ 
                     borderRadius: 2,
@@ -284,19 +286,19 @@ export default function PortfolioPage() {
                 </IconButton>
                 
                 <Button 
-                  variant="outlined" 
-                  startIcon={<FilterListIcon />}
+                  startIcon={<FilterListIcon />} 
                   sx={{ borderRadius: 2 }}
+                  variant="outlined"
                 >
                   Filter
                 </Button>
                 
                 <Button 
-                  variant="contained" 
-                  color="primary"
-                  startIcon={<AddIcon />}
+                  color="primary" 
                   onClick={handleDepositOpen}
+                  startIcon={<AddIcon />}
                   sx={{ borderRadius: 2 }}
+                  variant="contained"
                 >
                   Deposit
                 </Button>
@@ -306,9 +308,9 @@ export default function PortfolioPage() {
             {/* 資產表格 */}
             <AssetTable 
               assets={filteredAssets} 
+              onSort={handleSort} 
               sortColumn={sortColumn} 
               sortDirection={sortDirection} 
-              onSort={handleSort} 
             />
 
             {/* 交易歷史 */}
@@ -316,10 +318,10 @@ export default function PortfolioPage() {
 
             {/* 存款對話框 */}
             <DepositDialog 
-              open={depositOpen} 
-              walletType={tabValue === 0 ? 'personal' : 'multisig'} 
               onClose={handleDepositClose} 
               onSubmit={handleDepositSubmit} 
+              open={depositOpen} 
+              walletType={tabValue === 0 ? 'personal' : 'multisig'} 
             />
           </>
         )}

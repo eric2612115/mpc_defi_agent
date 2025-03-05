@@ -37,18 +37,18 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ tokens }) => {
               >
                 {token.symbol.substring(0, 1)}
               </Avatar>
-              <Typography variant="body2" fontWeight={500}>
+              <Typography fontWeight={500} variant="body2">
                 {token.name} ({token.symbol})
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>
+              <Typography sx={{ mr: 1 }} variant="body2">
                 ${token.value.toLocaleString()}
               </Typography>
               <Typography 
-                variant="caption" 
-                color={token.performance > 0 ? 'success.main' : token.performance < 0 ? 'error.main' : 'text.secondary'}
+                color={token.performance > 0 ? 'success.main' : token.performance < 0 ? 'error.main' : 'text.secondary'} 
                 sx={{ display: 'flex', alignItems: 'center' }}
+                variant="caption"
               >
                 {token.performance > 0 ? <TrendingUpIcon fontSize="inherit" sx={{ mr: 0.5 }} /> : 
                 token.performance < 0 ? <TrendingDownIcon fontSize="inherit" sx={{ mr: 0.5 }} /> : null}
@@ -66,7 +66,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ tokens }) => {
               }} 
             />
           </Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          <Typography color="text.secondary" sx={{ display: 'block', mt: 0.5 }} variant="caption">
             {token.allocation}% of portfolio
           </Typography>
         </Box>

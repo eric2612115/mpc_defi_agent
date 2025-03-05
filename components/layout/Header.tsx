@@ -36,8 +36,8 @@ export default function Header({ hasAgent = false, onMenuToggle }: any) {
   }, []);
   return (
     <AppBar 
-      position="fixed" 
-      elevation={0}
+      elevation={0} 
+      position="fixed"
       sx={{ 
         zIndex: theme.zIndex.drawer + 1,
         bgcolor: '#F8EDD7', // Fully opaque background

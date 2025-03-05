@@ -53,12 +53,12 @@ const AssetTable: React.FC<AssetTableProps> = ({
           <TableRow sx={{ bgcolor: alpha(theme.palette.background.default, 0.6) }}>
             <TableCell>
               <Box 
+                onClick={() => onSort('name')}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   cursor: 'pointer' 
                 }}
-                onClick={() => onSort('name')}
               >
                 Asset
                 {sortColumn === 'name' && (
@@ -70,13 +70,13 @@ const AssetTable: React.FC<AssetTableProps> = ({
             </TableCell>
             <TableCell align="right">
               <Box 
+                onClick={() => onSort('balance')}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'flex-end', 
                   cursor: 'pointer' 
                 }}
-                onClick={() => onSort('balance')}
               >
                 Balance
                 {sortColumn === 'balance' && (
@@ -88,13 +88,13 @@ const AssetTable: React.FC<AssetTableProps> = ({
             </TableCell>
             <TableCell align="right">
               <Box 
+                onClick={() => onSort('price')}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'flex-end', 
                   cursor: 'pointer' 
                 }}
-                onClick={() => onSort('price')}
               >
                 Price
                 {sortColumn === 'price' && (
@@ -106,13 +106,13 @@ const AssetTable: React.FC<AssetTableProps> = ({
             </TableCell>
             <TableCell align="right">
               <Box 
+                onClick={() => onSort('value')}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'flex-end', 
                   cursor: 'pointer' 
                 }}
-                onClick={() => onSort('value')}
               >
                 Value
                 {sortColumn === 'value' && (
@@ -124,13 +124,13 @@ const AssetTable: React.FC<AssetTableProps> = ({
             </TableCell>
             <TableCell align="right">
               <Box 
+                onClick={() => onSort('change24h')}
                 sx={{ 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'flex-end', 
                   cursor: 'pointer' 
                 }}
-                onClick={() => onSort('change24h')}
               >
                 24h Change
                 {sortColumn === 'change24h' && (
@@ -146,8 +146,8 @@ const AssetTable: React.FC<AssetTableProps> = ({
         <TableBody>
           {assets.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} align="center">
-                <Typography variant="body1" sx={{ py: 4 }}>
+              <TableCell align="center" colSpan={6}>
+                <Typography sx={{ py: 4 }} variant="body1">
                   No assets found
                 </Typography>
               </TableCell>
@@ -158,6 +158,7 @@ const AssetTable: React.FC<AssetTableProps> = ({
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar 
+                      src={asset.logoUrl}
                       sx={{ 
                         width: 40, 
                         height: 40,
@@ -165,22 +166,21 @@ const AssetTable: React.FC<AssetTableProps> = ({
                         fontSize: '1rem',
                         mr: 2
                       }}
-                      src={asset.logoUrl}
                     >
                       {!asset.logoUrl && asset.symbol.substring(0, 1)}
                     </Avatar>
                     <Box>
-                      <Typography variant="body1" fontWeight={500}>
+                      <Typography fontWeight={500} variant="body1">
                         {asset.name}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography color="text.secondary" variant="caption">
                         {asset.symbol}
                       </Typography>
                     </Box>
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body1" fontWeight={500}>
+                  <Typography fontWeight={500} variant="body1">
                     {asset.balance.toLocaleString()} {asset.symbol}
                   </Typography>
                 </TableCell>
@@ -190,7 +190,7 @@ const AssetTable: React.FC<AssetTableProps> = ({
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body1" fontWeight={500}>
+                  <Typography fontWeight={500} variant="body1">
                     ${asset.value.toLocaleString()}
                   </Typography>
                 </TableCell>
@@ -216,14 +216,14 @@ const AssetTable: React.FC<AssetTableProps> = ({
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                     <Button 
-                      variant="outlined" 
+                      color="primary" 
                       size="small"
-                      color="primary"
                       startIcon={<SwapIcon />}
                       sx={{
                         borderRadius: 1.5,
                         borderColor: theme.palette.primary.main
                       }}
+                      variant="outlined"
                     >
                       Swap
                     </Button>

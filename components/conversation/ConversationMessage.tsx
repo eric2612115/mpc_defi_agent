@@ -64,7 +64,7 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
                 <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
                   {listItems.map((item, j) => (
                     <li key={j}>
-                      <Typography variant="body1" component="span">
+                      <Typography component="span" variant="body1">
                         {item.replace(/^[-*]\s/, '')}
                       </Typography>
                     </li>
@@ -78,11 +78,11 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           return (
             <Typography 
               key={i} 
-              variant="body1" 
               sx={{ 
                 mb: 1.5,
                 whiteSpace: 'pre-line' // Preserve single newlines
-              }}
+              }} 
+              variant="body1"
             >
               {paragraph}
             </Typography>
@@ -175,27 +175,27 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
     if (message.message_type === 'tool_call') {
       return (
         <Chip 
-          size="small" 
-          label={message.tool ? `${message.tool.name}` : "Tool Call"} 
           color="info" 
+          label={message.tool ? `${message.tool.name}` : "Tool Call"} 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
     } else if (message.message_type === 'thinking') {
       return (
         <Chip 
-          size="small" 
-          label="Thinking" 
           color="secondary" 
+          label="Thinking" 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
     } else if (message.message_type === 'transaction') {
       return (
         <Chip 
-          size="small" 
-          label="Transaction" 
           color="primary" 
+          label="Transaction" 
+          size="small" 
           sx={{ mb: 1, fontSize: '0.7rem' }}
         />
       );
@@ -227,7 +227,8 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
 
         {/* Status indicator */}
         {message.status && (
-          <Box sx={{
+          <Box
+            sx={{
             display: 'flex',
             alignItems: 'center',
             mt: 1,
@@ -236,7 +237,8 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
               : message.status === 'error'
                 ? 'error.main'
                 : 'info.main'
-          }}>
+          }}
+          >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}
             {message.status === 'error' && <CancelIcon fontSize="small" sx={{ mr: 1 }} />}
@@ -252,54 +254,54 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             {message.action.type === 'confirm' && (
               <Button
-                variant="contained"
-                size="small"
                 color="success"
                 onClick={handleActionButton}
+                size="small"
                 startIcon={<CheckCircleIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'info' && (
               <Button
-                variant="outlined"
-                size="small"
                 color="info"
+                size="small"
                 startIcon={<InfoIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="outlined"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'need_user_signature' && (
               <Button
-                variant="contained"
-                size="small"
                 color="primary"
                 onClick={handleActionButton}
+                size="small"
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'submitted' && message.action.tx_hash && (
               <Chip 
-                icon={<CheckCircleIcon />} 
+                color="success" 
+                icon={<CheckCircleIcon />}
                 label={`Tx: ${message.action.tx_hash.substring(0, 6)}...${message.action.tx_hash.substring(38)}`}
-                color="success"
                 size="small"
                 sx={{ fontFamily: 'monospace' }}
               />
             )}
             {message.action.type === 'completed' && (
-              <Typography variant="body2" color="success.main">
+              <Typography color="success.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
             {message.action.type === 'rejected' && (
-              <Typography variant="body2" color="error.main">
+              <Typography color="error.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
@@ -307,13 +309,13 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         )}
 
         <Typography
-          variant="caption"
           sx={{
             display: 'block',
             mt: 1,
             textAlign: message.sender === 'user' ? 'right' : 'left',
             opacity: 0.7,
           }}
+          variant="caption"
         >
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Typography>

@@ -20,23 +20,28 @@ const FAQ: React.FC<FAQProps> = ({ items, title = "Frequently Asked Questions" }
   return (
     <Box sx={{ mb: 6 }}>
       {title && (
-        <Typography variant="h4" component="h2" gutterBottom fontWeight={600}>
+        <Typography component="h2" fontWeight={600} gutterBottom variant="h4">
           {title}
         </Typography>
       )}
       
       {items.map((item, index) => (
-        <Accordion key={index} disableGutters elevation={0} sx={{ 
+        <Accordion
+          disableGutters
+          elevation={0}
+          key={index}
+          sx={{ 
           mb: 1, 
           border: '1px solid',
           borderColor: 'divider',
           '&:before': { display: 'none' }
-        }}>
+        }}
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{ px: 3, py: 1.5 }}
           >
-            <Typography variant="subtitle1" fontWeight={500}>
+            <Typography fontWeight={500} variant="subtitle1">
               {item.question}
             </Typography>
           </AccordionSummary>

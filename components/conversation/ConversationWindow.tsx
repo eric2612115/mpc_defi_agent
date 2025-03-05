@@ -121,9 +121,9 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         {/* Show a chip for tool calls */}
         {message.message_type === 'tool_call' && (
           <Chip 
-            size="small" 
-            label="Tool Call" 
             color="info" 
+            label="Tool Call" 
+            size="small" 
             sx={{ mb: 1, fontSize: '0.7rem' }}
           />
         )}
@@ -131,10 +131,11 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         {/* Hide excessively detailed AI thinking or tool calls from the user */}
         {message.message_type === 'thinking' || message.message_type === 'tool_call' ? (
           <Box sx={{ maxHeight: '40px', overflow: 'hidden', position: 'relative' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.7 }}>
+            <Typography color="text.secondary" sx={{ opacity: 0.7 }} variant="body2">
               AI is analyzing data...
             </Typography>
-            <Box sx={{ 
+            <Box
+              sx={{ 
               position: 'absolute', 
               bottom: 0, 
               left: 0, 
@@ -145,17 +146,19 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
                 : message.sender === 'system'
                 ? alpha(theme.palette.info.main, 0.1)
                 : customStyles.chatBubbles.agent.backgroundColor})` 
-            }} />
+            }}
+            />
           </Box>
         ) : (
-          <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+          <Typography sx={{ whiteSpace: 'pre-line' }} variant="body1">
             {message.text}
           </Typography>
         )}
 
         {/* Status indicator */}
         {message.status && (
-          <Box sx={{
+          <Box
+            sx={{
             display: 'flex',
             alignItems: 'center',
             mt: 1,
@@ -164,7 +167,8 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
               : message.status === 'error'
                 ? 'error.main'
                 : 'info.main'
-          }}>
+          }}
+          >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}
             {message.status === 'error' && <CancelIcon fontSize="small" sx={{ mr: 1 }} />}
@@ -180,54 +184,54 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             {message.action.type === 'confirm' && (
               <Button
-                variant="contained"
-                size="small"
                 color="success"
                 onClick={handleActionClick}
+                size="small"
                 startIcon={<CheckCircleIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'info' && (
               <Button
-                variant="outlined"
-                size="small"
                 color="info"
+                size="small"
                 startIcon={<InfoIcon />}
                 sx={{ borderRadius: 1.5 }}
+                variant="outlined"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'need_user_signature' && (
               <Button
-                variant="contained"
-                size="small"
                 color="primary"
                 onClick={handleActionClick}
+                size="small"
                 sx={{ borderRadius: 1.5 }}
+                variant="contained"
               >
                 {message.action.text}
               </Button>
             )}
             {message.action.type === 'submitted' && message.action.tx_hash && (
               <Chip 
-                icon={<CheckCircleIcon />} 
+                color="success" 
+                icon={<CheckCircleIcon />}
                 label={`Tx: ${message.action.tx_hash.substring(0, 6)}...${message.action.tx_hash.substring(38)}`}
-                color="success"
                 size="small"
                 sx={{ fontFamily: 'monospace' }}
               />
             )}
             {message.action.type === 'completed' && (
-              <Typography variant="body2" color="success.main">
+              <Typography color="success.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
             {message.action.type === 'rejected' && (
-              <Typography variant="body2" color="error.main">
+              <Typography color="error.main" variant="body2">
                 {message.action.text}
               </Typography>
             )}
@@ -235,17 +239,17 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         )}
 
         <Typography
-          variant="caption"
           sx={{
             display: 'block',
             mt: 1,
             textAlign: message.sender === 'user' ? 'right' : 'left',
             opacity: 0.7,
           }}
+          variant="caption"
         >
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Typography>
-              </Paper>
+      </Paper>
     </Box>
   );
 };

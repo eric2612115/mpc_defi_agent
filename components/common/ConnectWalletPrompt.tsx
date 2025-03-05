@@ -55,17 +55,17 @@ export default function ConnectWalletPrompt() {
         }}
       >
         <Typography 
-          variant="h4" 
           fontWeight={600} 
-          gutterBottom
+          gutterBottom 
           sx={{ 
             color: theme.palette.primary.main,
             mb: 1
           }}
+          variant="h4"
         >
           Welcome to AI Trading Assistant
         </Typography>
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 4, color: alpha(theme.palette.text.primary, 0.8) }}>
+        <Typography gutterBottom sx={{ mb: 4, color: alpha(theme.palette.text.primary, 0.8) }} variant="subtitle1">
           Connect your wallet to start managing your portfolio with advanced AI assistance
         </Typography>
 
@@ -73,9 +73,8 @@ export default function ConnectWalletPrompt() {
           <ConnectButton.Custom>
             {({ openConnectModal }) => (
               <Button
-                variant="contained"
-                size="large"
                 onClick={openConnectModal}
+                size="large"
                 startIcon={<WalletIcon />}
                 sx={{
                   minWidth: 220,
@@ -84,6 +83,7 @@ export default function ConnectWalletPrompt() {
                   borderRadius: 2,
                   boxShadow: theme.customShadows.button,
                 }}
+                variant="contained"
               >
                 Connect Wallet
               </Button>
@@ -131,10 +131,10 @@ export default function ConnectWalletPrompt() {
               >
                 {feature.icon}
               </Box>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
+              <Typography fontWeight={600} gutterBottom variant="h6">
                 {feature.title}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography color="text.secondary" variant="body2">
                 {feature.description}
               </Typography>
             </Box>

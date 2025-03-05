@@ -36,32 +36,36 @@ const WalletOverview: React.FC<WalletOverviewProps> = ({ wallet, onDeposit }) =>
   };
 
   return (
-    <Card sx={{ 
+    <Card
+      sx={{ 
       mb: 4,
       border: `1px solid ${theme.palette.divider}`,
       boxShadow: theme.customShadows.light,
       borderRadius: 2,
       overflow: 'hidden',
-    }}>
-      <Box sx={{ 
+    }}
+    >
+      <Box
+        sx={{ 
         p: 3, 
         borderBottom: `1px solid ${theme.palette.divider}`,
         background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`,
-      }}>
+      }}
+      >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <Typography gutterBottom variant="h6">
               Wallet Overview
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>
+              <Typography sx={{ mr: 1 }} variant="body2">
                 {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
               </Typography>
               <Tooltip title={copiedAddress ? "Copied!" : "Copy Address"}>
                 <IconButton 
-                  size="small" 
+                  color={copiedAddress ? "success" : "default"} 
                   onClick={() => copyAddress(wallet.address)}
-                  color={copiedAddress ? "success" : "default"}
+                  size="small"
                 >
                   {copiedAddress ? <CheckIcon fontSize="small" /> : <CopyIcon fontSize="small" />}
                 </IconButton>
@@ -69,14 +73,14 @@ const WalletOverview: React.FC<WalletOverviewProps> = ({ wallet, onDeposit }) =>
             </Box>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="h5" sx={{ mb: 0.5 }}>
+            <Typography sx={{ mb: 0.5 }} variant="h5">
               ${wallet.totalValue.toLocaleString()}
             </Typography>
             <Chip 
-              size="small" 
+              color="success" 
               icon={<ArrowUpIcon />} 
               label={`${wallet.change24h}% today`} 
-              color="success"
+              size="small"
               sx={{ fontWeight: 500 }}
             />
           </Box>
@@ -85,24 +89,24 @@ const WalletOverview: React.FC<WalletOverviewProps> = ({ wallet, onDeposit }) =>
       <CardContent>
         <Box sx={{ display: 'flex', gap: 2, mb: 2, justifyContent: 'center' }}>
           <Button
-            variant="outlined"
             startIcon={<SendIcon />}
             sx={{ borderRadius: 2, flexGrow: 1, maxWidth: 200 }}
+            variant="outlined"
           >
             Send
           </Button>
           <Button
-            variant="outlined"
             startIcon={<SwapIcon />}
             sx={{ borderRadius: 2, flexGrow: 1, maxWidth: 200 }}
+            variant="outlined"
           >
             Swap
           </Button>
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
             onClick={onDeposit}
+            startIcon={<AddIcon />}
             sx={{ borderRadius: 2, flexGrow: 1, maxWidth: 200 }}
+            variant="contained"
           >
             Deposit
           </Button>

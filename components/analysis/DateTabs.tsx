@@ -19,16 +19,16 @@ const DateTabs: React.FC<DateTabsProps> = ({ dates, selectedIndex, onChange }) =
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
       <Tabs 
-        value={selectedIndex} 
-        onChange={onChange}
-        variant="scrollable"
-        scrollButtons="auto"
         TabIndicatorProps={{
           style: {
             backgroundColor: theme.palette.primary.main,
             height: 3
           }
-        }}
+        }} 
+        onChange={onChange}
+        scrollButtons="auto"
+        value={selectedIndex}
+        variant="scrollable"
       >
         {dates.map((date, index) => (
           <Tab 

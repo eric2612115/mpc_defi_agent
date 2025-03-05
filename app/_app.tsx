@@ -48,11 +48,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiProvider config={config} >
       <SessionProvider refetchInterval={0} session={pageProps.session}>
         <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider locale={locale} theme={darkTheme()}>
-              <ThemeWrapper>
-                <Component {...pageProps} />
-              </ThemeWrapper>
-            </RainbowKitProvider>
+          <RainbowKitProvider locale={locale} theme={darkTheme()}>
+            <ThemeWrapper>
+              <Component {...pageProps} />
+            </ThemeWrapper>
+          </RainbowKitProvider>
         </QueryClientProvider>
       </SessionProvider>
     </WagmiProvider>

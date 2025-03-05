@@ -68,11 +68,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider 
-          theme={customRainbowTheme}
           appInfo={{
             appName: 'AI Trading Assistant',
             learnMoreUrl: '/about',
           }}
+          theme={customRainbowTheme}
         >
           {children}
         </RainbowKitProvider>

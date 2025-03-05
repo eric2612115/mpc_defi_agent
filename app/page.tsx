@@ -417,10 +417,10 @@ const handleSignTransaction = async (data: any) => {
   return (
     <MainLayout>
       <Box sx={{ pb: 2, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)' }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
+        <Typography fontWeight={600} gutterBottom variant="h5">
           AI Trading Assistant
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
           Ask me to analyze markets, execute trades, or manage your portfolio with natural language
         </Typography>
 
@@ -448,7 +448,8 @@ const handleSignTransaction = async (data: any) => {
               gap: 1.5
             }}
           >
-            <Box sx={{ 
+            <Box
+              sx={{ 
               width: 40, 
               height: 40, 
               borderRadius: '50%', 
@@ -457,11 +458,12 @@ const handleSignTransaction = async (data: any) => {
               alignItems: 'center',
               justifyContent: 'center',
               color: theme.palette.primary.contrastText
-            }}>
+            }}
+            >
               <AgentIcon />
             </Box>
             <Box>
-              <Typography variant="subtitle1" fontWeight={600}>
+              <Typography fontWeight={600} variant="subtitle1">
                 AI Assistant
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -473,17 +475,17 @@ const handleSignTransaction = async (data: any) => {
                     bgcolor: wsConnected ? 'success.main' : 'error.main'
                   }}
                 />
-                <Typography variant="caption" color="text.secondary">
+                <Typography color="text.secondary" variant="caption">
                   {wsConnected ? 'Connected' : 'Disconnected'}
                 </Typography>
               </Box>
             </Box>
             <Chip 
+              color="primary" 
               label="2/2 MPC Wallet" 
               size="small" 
-              color="primary" 
-              variant="outlined" 
               sx={{ ml: 'auto' }} 
+              variant="outlined" 
             />
           </Box>
 
@@ -501,27 +503,30 @@ const handleSignTransaction = async (data: any) => {
           >
             {/* Welcome card for new users */}
             {messages.length <= 1 && (
-              <Card elevation={0} sx={{ 
+              <Card
+                elevation={0}
+                sx={{ 
                 mb: 2, 
                 borderRadius: 2,
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                 bgcolor: alpha(theme.palette.background.paper, 0.5),
                 overflow: 'visible'
-              }}>
+              }}
+              >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
                     <LightbulbIcon color="primary" sx={{ mr: 1.5, mt: 0.5 }} />
                     <Box>
-                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                      <Typography fontWeight={600} gutterBottom variant="subtitle1">
                         Tips for using your AI Trading Assistant
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography color="text.secondary" variant="body2">
                         I can help you manage your portfolio and execute trades using natural language commands. 
                         Simply describe what you want to do, and I&apos;ll handle the details.
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+                  <Typography sx={{ mb: 1.5 }} variant="subtitle2">
                     Try asking me:
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -556,7 +561,8 @@ const handleSignTransaction = async (data: any) => {
             {/* AI thinking indicator */}
             {isTyping && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 2 }}>
-                <Box sx={{ 
+                <Box
+                  sx={{ 
                   width: 38, 
                   height: 38, 
                   borderRadius: '50%', 
@@ -565,12 +571,13 @@ const handleSignTransaction = async (data: any) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: theme.palette.primary.contrastText
-                }}>
+                }}
+                >
                   <AgentIcon />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.background.paper, 0.6), p: 2, borderRadius: 2 }}>
                   <CircularProgress size={16} />
-                  <Typography variant="body2" sx={{ ml: 1 }}>
+                  <Typography sx={{ ml: 1 }} variant="body2">
                     AI is thinking...
                   </Typography>
                 </Box>
@@ -589,7 +596,8 @@ const handleSignTransaction = async (data: any) => {
                   opacity: 0.7
                 }}
               >
-                <Box sx={{ 
+                <Box
+                  sx={{ 
                   p: 3,
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
                   color: theme.palette.primary.main,
@@ -598,13 +606,14 @@ const handleSignTransaction = async (data: any) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   mb: 2
-                }}>
+                }}
+                >
                   <InfoIcon fontSize="large" />
                 </Box>
-                <Typography variant="body1" gutterBottom>
+                <Typography gutterBottom variant="body1">
                   No messages yet
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography color="text.secondary" variant="body2">
                   Start by asking about trading or portfolio management
                 </Typography>
               </Box>
@@ -624,25 +633,25 @@ const handleSignTransaction = async (data: any) => {
           >
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField
+                disabled={!wsConnected}
                 fullWidth
-                variant="outlined"
-                placeholder="Type your message..."
-                value={input}
+                maxRows={4}
+                multiline
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                multiline
-                maxRows={4}
-                disabled={!wsConnected}
+                placeholder="Type your message..."
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
                   }
                 }}
+                value={input}
+                variant="outlined"
               />
               <IconButton
                 color="primary"
-                onClick={handleSendMessage}
                 disabled={!input.trim() || isTyping || !wsConnected}
+                onClick={handleSendMessage}
                 sx={{
                   height: 56,
                   width: 56,
@@ -660,7 +669,7 @@ const handleSignTransaction = async (data: any) => {
         </Paper>
 
         {/* Error message */}
-        <Snackbar open={!!errorMessage} autoHideDuration={6000} onClose={handleCloseError}>
+        <Snackbar autoHideDuration={6000} onClose={handleCloseError} open={!!errorMessage}>
           <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
             {errorMessage}
           </Alert>
