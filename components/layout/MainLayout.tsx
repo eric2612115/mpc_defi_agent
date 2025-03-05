@@ -56,15 +56,7 @@ export default function MainLayout({
       } catch (err) {
         console.error('Error checking agent status:', err);
         setError('Unable to check agent status. Please try again later.');
-        
-        // For development mode, set hasAgent to true to bypass the creation flow
-        const DEVELOPMENT_MODE = process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true';
-        if (DEVELOPMENT_MODE) {
-          console.warn('⚠️ Development mode: Setting hasAgent to true');
-          setHasAgent(true);
-        } else {
-          setHasAgent(false);
-        }
+        setHasAgent(false);
       } finally {
         setLoading(false);
       }
@@ -130,21 +122,13 @@ export default function MainLayout({
   }
 
   // If agent is required but not created, show prompt
-  // DEVELOPMENT CHANGE: Bypass agent creation in development mode
   if (requireAgent && !hasAgent && isConnected) {
-    const DEVELOPMENT_MODE = process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true';
-    
-    if (DEVELOPMENT_MODE) {
-      console.log("Development mode: Bypassing agent creation requirement");
-      // Continue to the normal layout below instead of returning the CreateAgentPrompt
-    } else {
-      return (
-        <>
-          <Header hasAgent={hasAgent} />
-          <CreateAgentPrompt onCreateAgent={handleCreateAgent} />
-        </>
-      );
-    }
+    return (
+      <>
+        <Header hasAgent={hasAgent} />
+        <CreateAgentPrompt onCreateAgent={handleCreateAgent} />
+      </>
+    );
   }
 
   return (

@@ -28,16 +28,21 @@ import {
   ArrowDropUp as ArrowUpIcon,
   BarChartOutlined as ChartIcon,
   ChatBubbleOutline as ChatIcon,
+  Check as CheckIcon,
   InfoOutlined as InfoIcon,
   Logout as LogoutIcon,
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
-  SupportAgentOutlined as SupportIcon,
   AccountBalanceWalletOutlined as WalletIcon
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAccount, useDisconnect } from 'wagmi';
+// /components/layout/Sidebar.tsx - 修改 import
+// 移除 useNetwork，改用 useAccount 獲取 chain，改用 useConfig 獲取 chains
+import { useAccount, useConfig, useDisconnect, useSwitchChain, useAccountEffect } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+
+import apiClient from '@/lib/apiClient'; // 確保引入 apiClient
 
 // Sidebar width
 const drawerWidth = 240;
@@ -63,6 +68,41 @@ export default function Sidebar() {
     ETHUSDT: { price: 3245.78, change_24h: 2.4 },
     SOLUSDT: { price: 143.47, change_24h: 6.24 }
   });
+  // Network state
+  const { chain } = useAccount();
+  const { chains } = useConfig();
+  const { error: switchError, isPending: isSwitchingChain, switchChain } = useSwitchChain();
+  const [hasAgent, setHasAgent] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  // 添加連接/斷開連接的效果
+  useAccountEffect({
+    onConnect: async (data) => {
+      if (data.address) {
+        try {
+          console.log('Checking agent status after connection:', data.address);
+          const response = await apiClient.checkAgentStatus(data.address);
+          setHasAgent(response.data?.has_agent || false);
+        } catch (err) {
+          console.error('Error checking agent status:', err);
+          setHasAgent(false);
+        }
+      }
+    },
+    onDisconnect: () => {
+      setHasAgent(null);
+    }
+  });
+
+  // 新增切換網絡功能
+  const handleSwitchChain = (chainId: number) => {
+    if (switchChain) {
+      switchChain({ chainId });
+    }
+    handleSettingsClose();
+  };
 
   // Fix hydration issues - only render conditional content after client-side mount
   useEffect(() => {
@@ -249,6 +289,9 @@ export default function Sidebar() {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               onClose={handleSettingsClose}
               open={Boolean(settingsAnchorEl)}
+              slotProps={{ 
+                paper: { sx: { width: 230 } } 
+              }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               {mounted && isConnected ? [
@@ -258,6 +301,37 @@ export default function Sidebar() {
                   </ListItemIcon>
                   <ListItemText primary="Account Settings" />
                 </MenuItem>,
+                <Box key="network-divider" sx={{ my: 1 }}>
+                  <Typography color="text.secondary" sx={{ px: 2, py: 0.5, fontSize: '0.75rem' }}>
+                    Select Network
+                  </Typography>
+                  <Divider />
+                </Box>,
+                ...(chains || []).map((chainOption) => (
+                  <MenuItem 
+                    key={chainOption.id} 
+                    onClick={() => handleSwitchChain(chainOption.id)}
+                    selected={chain?.id === chainOption.id}
+                  >
+                    <ListItemIcon>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          bgcolor: chain?.id === chainOption.id ? theme.palette.primary.main : theme.palette.divider,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        {chain?.id === chainOption.id && <CheckIcon sx={{ fontSize: 14, color: 'white' }} />}
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText primary={chainOption.name} />
+                  </MenuItem>
+                )),
+                <Divider key="action-divider" />,
                 <MenuItem key="disconnect" onClick={handleDisconnect}>
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
@@ -266,7 +340,29 @@ export default function Sidebar() {
                 </MenuItem>
               ] : (
                 <MenuItem>
-                  <ListItemText primary="Connect Wallet" />
+                  <ConnectButton.Custom>
+                    {({ openConnectModal, account, chain, openChainModal }) => (
+                      <Button 
+                        fullWidth 
+                        onClick={async () => {
+                          openConnectModal();
+        
+                          // 這個效果會在用戶完成連接後觸發，但需要配合 useAccountEffect
+                          // 所以這裡只是一個備用方案
+                        }}
+                        size="small"
+                        sx={{ 
+                          bgcolor: alpha('#fff', 0.2), 
+                          color: 'white',
+                          '&:hover': { bgcolor: alpha('#fff', 0.3) },
+                          mt: 1
+                        }}
+                        variant="contained"
+                      >
+                        Connect Wallet
+                      </Button>
+                    )}
+                  </ConnectButton.Custom>
                 </MenuItem>
               )}
             </Menu>
@@ -292,19 +388,24 @@ export default function Sidebar() {
               </Typography>
             </Box>
           ) : (
-            <Button 
-              fullWidth 
-              size="small"
-              sx={{ 
-                bgcolor: alpha('#fff', 0.2), 
-                color: 'white',
-                '&:hover': { bgcolor: alpha('#fff', 0.3) },
-                mt: 1
-              }}
-              variant="contained"
-            >
-              Connect Wallet
-            </Button>
+            <ConnectButton.Custom>
+              {({ openConnectModal }) => (
+                <Button 
+                  fullWidth 
+                  onClick={openConnectModal}
+                  size="small"
+                  sx={{ 
+                    bgcolor: alpha('#fff', 0.2), 
+                    color: 'white',
+                    '&:hover': { bgcolor: alpha('#fff', 0.3) },
+                    mt: 1
+                  }}
+                  variant="contained"
+                >
+                  Connect Wallet
+                </Button>
+              )}
+            </ConnectButton.Custom>
           )}
         </CardContent>
       </Card>

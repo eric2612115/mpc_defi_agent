@@ -56,6 +56,7 @@ async function fetchApi<T>(
 /**
    * Check if a user has an agent
    */
+// /lib/apiClient.ts - 找到 checkAgentStatus 函數，整個替換為:
 export async function checkAgentStatus(walletAddress: string): Promise<ApiResponse<{ has_agent: boolean, multisig_address?: string }>> {
   if (USE_MOCK_DATA) {
     console.warn('⚠️ Using mock data for agent status');
@@ -68,7 +69,7 @@ export async function checkAgentStatus(walletAddress: string): Promise<ApiRespon
     };
   }
     
-  return fetchApi<{ has_agent: boolean, multisig_address?: string }>(`/api/agent-status/${walletAddress}`);
+  return fetchApi<{ has_agent: boolean, multisig_address?: string }>(`/api/user-status?wallet_address=${walletAddress}`);
 }
   
 /**
@@ -86,7 +87,7 @@ export async function createAgent(walletAddress: string): Promise<ApiResponse<{ 
     };
   }
     
-  return fetchApi<{ success: boolean, message: string }>('/api/agent', {
+  return fetchApi<{ success: boolean, message: string }>('/api/create-agent', {
     method: 'POST',
     body: JSON.stringify({ wallet_address: walletAddress }),
   });
