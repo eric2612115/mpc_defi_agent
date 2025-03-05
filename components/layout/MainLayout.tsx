@@ -1,7 +1,7 @@
 // components/layout/MainLayout.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, Snackbar, Alert, useMediaQuery } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Alert, Box, CircularProgress, Snackbar, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAccount } from 'wagmi';
 import Header from './Header';
@@ -150,11 +150,11 @@ export default function MainLayout({
   return (
     <Box
       sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      minHeight: '100vh',
-      bgcolor: theme.palette.background.default,
-    }}
+        display: 'flex', 
+        flexDirection: 'column',
+        minHeight: '100vh',
+        bgcolor: theme.palette.background.default,
+      }}
     >
       {/* Top navigation bar */}
       <Header hasAgent={hasAgent} />
@@ -162,10 +162,10 @@ export default function MainLayout({
       {/* Main content area */}
       <Box
         sx={{ 
-        display: 'flex', 
-        flexGrow: 1,
-        pt: { xs: 8, sm: 9 } // Space for top nav bar
-      }}
+          display: 'flex', 
+          flexGrow: 1,
+          pt: { xs: 8, sm: 9 } // Space for top nav bar
+        }}
       >
         {/* Left sidebar (if enabled) */}
         {showSidebar && !isMobile && (

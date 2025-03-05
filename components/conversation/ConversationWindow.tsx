@@ -1,22 +1,22 @@
 // components/conversation/ConversationMessage.tsx
 import React from 'react';
 import { 
-  Box, 
-  Typography, 
-  Paper, 
+  alpha, 
   Avatar, 
-  Chip, 
+  Box, 
   Button, 
+  Chip, 
   CircularProgress, 
-  useTheme, 
-  alpha 
+  Paper, 
+  Typography, 
+  useTheme 
 } from '@mui/material';
 import { 
   SmartToy as AgentIcon,
-  Person as PersonIcon,
-  Info as InfoIcon,
+  Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon
+  Info as InfoIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { customStyles } from '@/lib/theme';
 
@@ -77,19 +77,19 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           bgcolor: message.sender === 'user'
             ? theme.palette.secondary.main
             : message.sender === 'system'
-            ? theme.palette.info.main
-            : theme.palette.primary.main,
+              ? theme.palette.info.main
+              : theme.palette.primary.main,
           color: message.sender === 'user'
             ? theme.palette.secondary.contrastText
             : message.sender === 'system'
-            ? theme.palette.info.contrastText
-            : theme.palette.primary.contrastText,
+              ? theme.palette.info.contrastText
+              : theme.palette.primary.contrastText,
           width: 38,
           height: 38
         }}
       >
         {message.sender === 'user' ? <PersonIcon /> : 
-         message.sender === 'system' ? <InfoIcon /> : <AgentIcon />}
+          message.sender === 'system' ? <InfoIcon /> : <AgentIcon />}
       </Avatar>
       
       <Paper
@@ -99,8 +99,8 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           bgcolor: message.sender === 'user' 
             ? customStyles.chatBubbles.user.backgroundColor 
             : message.sender === 'system'
-            ? alpha(theme.palette.info.main, 0.1)
-            : customStyles.chatBubbles.agent.backgroundColor,
+              ? alpha(theme.palette.info.main, 0.1)
+              : customStyles.chatBubbles.agent.backgroundColor,
           borderRadius: message.sender === 'user' 
             ? '12px 0 12px 12px' 
             : '0 12px 12px 12px',
@@ -110,8 +110,8 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
           borderLeft: message.sender === 'agent' 
             ? customStyles.chatBubbles.agent.borderLeft 
             : message.sender === 'system'
-            ? `3px solid ${theme.palette.info.main}`
-            : 'none',
+              ? `3px solid ${theme.palette.info.main}`
+              : 'none',
           position: 'relative',
           maxWidth: 'calc(100% - 50px)',
           overflow: 'hidden',
@@ -136,17 +136,17 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
             </Typography>
             <Box
               sx={{ 
-              position: 'absolute', 
-              bottom: 0, 
-              left: 0, 
-              right: 0,
-              height: '25px',
-              background: `linear-gradient(to bottom, transparent, ${message.sender === 'user' 
-                ? customStyles.chatBubbles.user.backgroundColor 
-                : message.sender === 'system'
-                ? alpha(theme.palette.info.main, 0.1)
-                : customStyles.chatBubbles.agent.backgroundColor})` 
-            }}
+                position: 'absolute', 
+                bottom: 0, 
+                left: 0, 
+                right: 0,
+                height: '25px',
+                background: `linear-gradient(to bottom, transparent, ${message.sender === 'user' 
+                  ? customStyles.chatBubbles.user.backgroundColor 
+                  : message.sender === 'system'
+                    ? alpha(theme.palette.info.main, 0.1)
+                    : customStyles.chatBubbles.agent.backgroundColor})` 
+              }}
             />
           </Box>
         ) : (
@@ -159,15 +159,15 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         {message.status && (
           <Box
             sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mt: 1,
-            color: message.status === 'completed'
-              ? 'success.main'
-              : message.status === 'error'
-                ? 'error.main'
-                : 'info.main'
-          }}
+              display: 'flex',
+              alignItems: 'center',
+              mt: 1,
+              color: message.status === 'completed'
+                ? 'success.main'
+                : message.status === 'error'
+                  ? 'error.main'
+                  : 'info.main'
+            }}
           >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}

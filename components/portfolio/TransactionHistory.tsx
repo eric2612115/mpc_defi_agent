@@ -1,8 +1,8 @@
 // components/portfolio/TransactionHistory.tsx
 import React from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Paper, Typography, Chip, Box, alpha, useTheme
+  alpha, Box, Chip, Paper, Table, TableBody, 
+  TableCell, TableContainer, TableHead, TableRow, Typography, useTheme
 } from '@mui/material';
 
 // 交易歷史類型定義
@@ -68,12 +68,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                       sx={{ 
                         bgcolor: 
                           tx.type === 'Swap' ? alpha(theme.palette.info.main, 0.1) : 
-                          tx.type === 'Send' ? alpha(theme.palette.error.main, 0.1) : 
-                          alpha(theme.palette.success.main, 0.1),
+                            tx.type === 'Send' ? alpha(theme.palette.error.main, 0.1) : 
+                              alpha(theme.palette.success.main, 0.1),
                         color: 
                           tx.type === 'Swap' ? theme.palette.info.main : 
-                          tx.type === 'Send' ? theme.palette.error.main : 
-                          theme.palette.success.main,
+                            tx.type === 'Send' ? theme.palette.error.main : 
+                              theme.palette.success.main,
                       }}
                     />
                   </TableCell>

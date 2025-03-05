@@ -1,8 +1,8 @@
 // components/about/StepList.tsx
 import React from 'react';
 import {
-  List, ListItem, ListItemIcon, ListItemText,
-  Box, Typography, Divider, alpha, useTheme
+  alpha, Box, Divider, List,
+  ListItem, ListItemIcon, ListItemText, Typography, useTheme
 } from '@mui/material';
 
 export interface Step {

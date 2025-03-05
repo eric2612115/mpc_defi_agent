@@ -1,16 +1,16 @@
 // components/analysis/MarketInsightsFeed.tsx
 import React, { useState } from 'react';
 import {
-  Box, Typography, Paper, Divider, IconButton, Chip, alpha, 
-  useTheme, CircularProgress, Card, CardContent, List, ListItem,
-  ListItemText, Button, Link, Tooltip
+  alpha, Box, Button, Card, CardContent, Chip, CircularProgress, 
+  Divider, IconButton, Link, List, ListItem, ListItemText,
+  Paper, Tooltip, Typography, useTheme
 } from '@mui/material';
 import {
-  Refresh as RefreshIcon,
   ArrowForward as ArrowForwardIcon,
-  TrendingUp as TrendingUpIcon,
   Error as ErrorIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Refresh as RefreshIcon,
+  TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import { MarketInsight } from '../../models/MarketAnalysis';
 import ReactMarkdown from 'react-markdown';

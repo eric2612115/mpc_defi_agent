@@ -47,7 +47,7 @@
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
     "autoprefixer": "^10.4.16",
-    "eslint": "^9",
+    "eslint": "^9.21.0",
     "eslint-config-next": "^15.2.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",

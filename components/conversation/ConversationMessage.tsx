@@ -1,15 +1,15 @@
 // components/conversation/ConversationMessage.tsx
 import React from 'react';
 import {
-  Box, Typography, Chip, CircularProgress, Button, useTheme, alpha,
-  Paper, Avatar
+  alpha, Avatar, Box, Button, Chip, CircularProgress, Paper,
+  Typography, useTheme
 } from '@mui/material';
 import {
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
   SmartToy as AgentIcon,
-  Person as PersonIcon,
-  Info as InfoIcon
+  Cancel as CancelIcon,
+  CheckCircle as CheckCircleIcon,
+  Info as InfoIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { customStyles } from '@/lib/theme';
 
@@ -39,10 +39,10 @@ interface ConversationMessageProps {
 }
 
 const ConversationMessage: React.FC<ConversationMessageProps> = ({
-    message,
-    onConfirmTransaction,
-    onSignTransaction
-  }) => {
+  message,
+  onConfirmTransaction,
+  onSignTransaction
+}) => {
   const theme = useTheme();
   
   // Helper function for rendering multi-line text with proper formatting
@@ -229,15 +229,15 @@ const ConversationMessage: React.FC<ConversationMessageProps> = ({
         {message.status && (
           <Box
             sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mt: 1,
-            color: message.status === 'completed'
-              ? 'success.main'
-              : message.status === 'error'
-                ? 'error.main'
-                : 'info.main'
-          }}
+              display: 'flex',
+              alignItems: 'center',
+              mt: 1,
+              color: message.status === 'completed'
+                ? 'success.main'
+                : message.status === 'error'
+                  ? 'error.main'
+                  : 'info.main'
+            }}
           >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}

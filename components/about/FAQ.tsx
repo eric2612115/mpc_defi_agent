@@ -1,7 +1,7 @@
 // components/about/FAQ.tsx
 import React from 'react';
 import {
-  Typography, Accordion, AccordionSummary, AccordionDetails, Box
+  Accordion, AccordionDetails, AccordionSummary, Box, Typography
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
@@ -31,11 +31,11 @@ const FAQ: React.FC<FAQProps> = ({ items, title = "Frequently Asked Questions" }
           elevation={0}
           key={index}
           sx={{ 
-          mb: 1, 
-          border: '1px solid',
-          borderColor: 'divider',
-          '&:before': { display: 'none' }
-        }}
+            mb: 1, 
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:before': { display: 'none' }
+          }}
         >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}

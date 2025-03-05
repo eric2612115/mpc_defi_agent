@@ -1,20 +1,20 @@
 // components/conversation/EnhancedMessage.tsx
 import React, { useState } from 'react';
 import {
-  Box, Typography, Chip, CircularProgress, Button, useTheme, alpha,
-  Paper, Avatar, Collapse, IconButton, Divider, Alert, Table, TableBody, TableCell, 
-  TableContainer, TableHead, TableRow, LinearProgress
+  Alert, alpha, Avatar, Box, Button, Chip, CircularProgress,
+  Collapse, Divider, IconButton, LinearProgress, Paper, Table, TableBody, TableCell, TableContainer, 
+  TableHead, TableRow, Typography, useTheme
 } from '@mui/material';
 import {
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
   SmartToy as AgentIcon,
-  Person as PersonIcon,
-  Info as InfoIcon,
-  KeyboardArrowDown as ExpandMoreIcon,
+  Analytics as AnalyticsIcon,
+  Cancel as CancelIcon,
+  CheckCircle as CheckCircleIcon,
   KeyboardArrowUp as ExpandLessIcon,
-  Security as SecurityIcon,
-  Analytics as AnalyticsIcon
+  KeyboardArrowDown as ExpandMoreIcon,
+  Info as InfoIcon,
+  Person as PersonIcon,
+  Security as SecurityIcon
 } from '@mui/icons-material';
 import { customStyles } from '@/lib/theme';
 
@@ -366,11 +366,11 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
           
           <Box
             sx={{ 
-            p: 1.5, 
-            bgcolor: alpha(theme.palette.primary.main, 0.05),
-            borderRadius: 1,
-            mb: 2
-          }}
+              p: 1.5, 
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderRadius: 1,
+              mb: 2
+            }}
           >
             <Typography color="text.secondary" variant="caption">Transaction Details</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
@@ -425,22 +425,22 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
         <Collapse in={showThinking}>
           <Box
             sx={{ 
-            border: `1px solid ${theme.palette.divider}`, 
-            borderRadius: 1,
-            mb: 2,
-            overflow: 'hidden'
-          }}
+              border: `1px solid ${theme.palette.divider}`, 
+              borderRadius: 1,
+              mb: 2,
+              overflow: 'hidden'
+            }}
           >
             {message.thinking_steps.map((step, index) => (
               <Box key={index}>
                 {index > 0 && <Divider />}
                 <Box
                   sx={{ 
-                  p: 1.5, 
-                  bgcolor: index % 2 === 0 
-                    ? 'transparent' 
-                    : alpha(theme.palette.background.default, 0.5) 
-                }}
+                    p: 1.5, 
+                    bgcolor: index % 2 === 0 
+                      ? 'transparent' 
+                      : alpha(theme.palette.background.default, 0.5) 
+                  }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Chip 
@@ -526,15 +526,15 @@ const EnhancedMessage: React.FC<EnhancedMessageProps> = ({
         {message.status && (
           <Box
             sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mt: 1,
-            color: message.status === 'completed'
-              ? 'success.main'
-              : message.status === 'error'
-                ? 'error.main'
-                : 'info.main'
-          }}
+              display: 'flex',
+              alignItems: 'center',
+              mt: 1,
+              color: message.status === 'completed'
+                ? 'success.main'
+                : message.status === 'error'
+                  ? 'error.main'
+                  : 'info.main'
+            }}
           >
             {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
             {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}

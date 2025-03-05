@@ -1,15 +1,15 @@
 // components/conversation/StructuredMessage.tsx
 import React from 'react';
 import {
-  Box, Typography, Paper, Avatar, Chip, Button, CircularProgress,
-  useTheme, alpha
+  alpha, Avatar, Box, Button, Chip, CircularProgress, Paper,
+  Typography, useTheme
 } from '@mui/material';
 import {
   SmartToy as AgentIcon,
-  Person as PersonIcon,
-  Info as InfoIcon,
+  Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon
+  Info as InfoIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { customStyles } from '@/lib/theme';
 
@@ -126,16 +126,16 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
   // 消息類型標籤
   const renderMessageTypeLabel = () => {
     switch (message.message_type) {
-      case 'thinking':
-        return <Chip color="primary" label={message.phase || "思考"} size="small" sx={{ mb: 1 }} />;
-      case 'tool_call':
-        return <Chip color="info" label={`工具: ${message.tool?.name}`} size="small" sx={{ mb: 1 }} />;
-      case 'transaction':
-        return <Chip color="secondary" label="交易" size="small" sx={{ mb: 1 }} />;
-      case 'error':
-        return <Chip color="error" label="錯誤" size="small" sx={{ mb: 1 }} />;
-      default:
-        return null;
+    case 'thinking':
+      return <Chip color="primary" label={message.phase || "思考"} size="small" sx={{ mb: 1 }} />;
+    case 'tool_call':
+      return <Chip color="info" label={`工具: ${message.tool?.name}`} size="small" sx={{ mb: 1 }} />;
+    case 'transaction':
+      return <Chip color="secondary" label="交易" size="small" sx={{ mb: 1 }} />;
+    case 'error':
+      return <Chip color="error" label="錯誤" size="small" sx={{ mb: 1 }} />;
+    default:
+      return null;
     }
   };
   
@@ -302,15 +302,15 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     return (
       <Box
         sx={{
-        display: 'flex',
-        alignItems: 'center',
-        mt: 1,
-        color: message.status === 'completed'
-          ? 'success.main'
-          : message.status === 'error'
-            ? 'error.main'
-            : 'info.main'
-      }}
+          display: 'flex',
+          alignItems: 'center',
+          mt: 1,
+          color: message.status === 'completed'
+            ? 'success.main'
+            : message.status === 'error'
+              ? 'error.main'
+              : 'info.main'
+        }}
       >
         {message.status === 'pending' && <CircularProgress size={14} sx={{ mr: 1 }} />}
         {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}

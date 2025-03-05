@@ -1,13 +1,13 @@
 // components/portfolio/AssetTable.tsx
 import React from 'react';
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Paper, Typography, Avatar, Chip, Button, Box, alpha, useTheme
+  alpha, Avatar, Box, Button, Chip, Paper, 
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useTheme
 } from '@mui/material';
 import { 
-  SwapHoriz as SwapIcon, 
+  ArrowDownward as ArrowDownwardIcon, 
   ArrowUpward as ArrowUpwardIcon, 
-  ArrowDownward as ArrowDownwardIcon 
+  SwapHoriz as SwapIcon 
 } from '@mui/icons-material';
 
 // 資產類型定義

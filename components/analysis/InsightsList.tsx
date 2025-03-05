@@ -1,6 +1,6 @@
 // components/analysis/InsightsList.tsx
 import React from 'react';
-import { Box, Typography, alpha, useTheme } from '@mui/material';
+import { alpha, Box, Typography, useTheme } from '@mui/material';
 
 interface InsightsListProps {
   insights: string[];
@@ -15,12 +15,12 @@ const InsightsList: React.FC<InsightsListProps> = ({ insights }) => {
         <Box
           key={index}
           sx={{ 
-          mb: 2, 
-          p: 2, 
-          borderRadius: 2,
-          bgcolor: alpha(theme.palette.background.paper, 0.4),
-          border: `1px solid ${theme.palette.divider}`
-        }}
+            mb: 2, 
+            p: 2, 
+            borderRadius: 2,
+            bgcolor: alpha(theme.palette.background.paper, 0.4),
+            border: `1px solid ${theme.palette.divider}`
+          }}
         >
           <Typography variant="body2">{insight}</Typography>
         </Box>

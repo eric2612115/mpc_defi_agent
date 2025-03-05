@@ -1,39 +1,39 @@
 // components/layout/Sidebar.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  alpha,
+  Avatar,
+  Badge,
   Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
   Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography,
-  Divider,
-  Button,
-  Card,
-  CardContent,
-  Avatar,
-  IconButton,
-  alpha,
-  useTheme,
-  Badge,
   Menu,
-  MenuItem
+  MenuItem,
+  Typography,
+  useTheme
 } from '@mui/material';
 import {
-  ChatBubbleOutline as ChatIcon,
-  AccountBalanceWalletOutlined as WalletIcon,
-  BarChartOutlined as ChartIcon,
-  InfoOutlined as InfoIcon,
-  SupportAgentOutlined as SupportIcon,
-  Settings as SettingsIcon,
-  ArrowDropUp as ArrowUpIcon,
-  ArrowDropDown as ArrowDownIcon,
   AccountCircle as AccountIcon,
+  ArrowDropDown as ArrowDownIcon,
+  ArrowDropUp as ArrowUpIcon,
+  BarChartOutlined as ChartIcon,
+  ChatBubbleOutline as ChatIcon,
+  InfoOutlined as InfoIcon,
   Logout as LogoutIcon,
-  Notifications as NotificationsIcon
+  Notifications as NotificationsIcon,
+  Settings as SettingsIcon,
+  SupportAgentOutlined as SupportIcon,
+  AccountBalanceWalletOutlined as WalletIcon
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -71,29 +71,29 @@ export default function Sidebar() {
 
   // Fetch ticker data every 30 seconds
   useEffect(() => {
-  const fetchTickers = async () => {
-    try {
+    const fetchTickers = async () => {
+      try {
       // 使用環境變量中的API基本URL
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
-      const response = await fetch(`${API_BASE_URL}/api/public-data/tickers`);
-      const data = await response.json();
-      if (data && data.tickers) {
-        setTickers(data.tickers);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
+        const response = await fetch(`${API_BASE_URL}/api/public-data/tickers`);
+        const data = await response.json();
+        if (data && data.tickers) {
+          setTickers(data.tickers);
+        }
+      } catch (error) {
+        console.error('Error fetching ticker data:', error);
       }
-    } catch (error) {
-      console.error('Error fetching ticker data:', error);
-    }
-  };
+    };
 
-  // Fetch immediately on mount
-  fetchTickers();
+    // Fetch immediately on mount
+    fetchTickers();
 
-  // Set up interval for updates
-  const intervalId = setInterval(fetchTickers, 30000); // 30 seconds
+    // Set up interval for updates
+    const intervalId = setInterval(fetchTickers, 30000); // 30 seconds
 
-  // Clean up interval on unmount
-  return () => clearInterval(intervalId);
-}, []);
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Settings menu handlers
   const handleSettingsClick = (event: any) => {
@@ -410,11 +410,11 @@ export default function Sidebar() {
               </Typography>
               <Box
                 sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                color: token.change >= 0 ? '#2E7D32' : '#D32F2F'
-              }}
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  color: token.change >= 0 ? '#2E7D32' : '#D32F2F'
+                }}
               >
                 {token.change >= 0 ? 
                   <ArrowUpIcon fontSize="small" /> : 

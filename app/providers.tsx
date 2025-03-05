@@ -2,13 +2,13 @@
 'use client';
 import {
   argentWallet,
-  trustWallet,
   ledgerWallet,
+  trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { mainnet, sepolia, polygon, arbitrum, optimism, base } from 'wagmi/chains';
+import { createConfig, http, WagmiProvider } from 'wagmi';
+import { arbitrum, base, mainnet, optimism, polygon, sepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RainbowKitProvider, getDefaultWallets, darkTheme, connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { connectorsForWallets, darkTheme, getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 // Configure wallets
 const { wallets } = getDefaultWallets({

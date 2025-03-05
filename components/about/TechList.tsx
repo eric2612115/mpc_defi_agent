@@ -1,7 +1,7 @@
 // components/about/TechList.tsx
 import React, { ReactNode } from 'react';
 import {
-  Box, Typography, List, ListItem, ListItemIcon, ListItemText
+  Box, List, ListItem, ListItemIcon, ListItemText, Typography
 } from '@mui/material';
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 

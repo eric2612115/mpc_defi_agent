@@ -1,6 +1,6 @@
 // components/analysis/DateTabs.tsx
 import React from 'react';
-import { Tabs, Tab, Box, useTheme } from '@mui/material';
+import { Box, Tab, Tabs, useTheme } from '@mui/material';
 
 export interface DateTab {
   date: string;

@@ -1,16 +1,16 @@
 // components/portfolio/WalletOverview.tsx
 import React, { useState } from 'react';
 import {
-  Card, CardContent, Typography, Box, Chip, IconButton, 
-  Button, Tooltip, alpha, useTheme
+  alpha, Box, Button, Card, CardContent, Chip, 
+  IconButton, Tooltip, Typography, useTheme
 } from '@mui/material';
 import {
-  ContentCopy as CopyIcon,
-  Check as CheckIcon,
-  Send as SendIcon,
-  SwapHoriz as SwapIcon,
   Add as AddIcon,
-  ArrowDropUp as ArrowUpIcon
+  ArrowDropUp as ArrowUpIcon,
+  Check as CheckIcon,
+  ContentCopy as CopyIcon,
+  Send as SendIcon,
+  SwapHoriz as SwapIcon
 } from '@mui/icons-material';
 
 // 錢包類型定義
@@ -38,19 +38,19 @@ const WalletOverview: React.FC<WalletOverviewProps> = ({ wallet, onDeposit }) =>
   return (
     <Card
       sx={{ 
-      mb: 4,
-      border: `1px solid ${theme.palette.divider}`,
-      boxShadow: theme.customShadows.light,
-      borderRadius: 2,
-      overflow: 'hidden',
-    }}
+        mb: 4,
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.customShadows.light,
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
     >
       <Box
         sx={{ 
-        p: 3, 
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`,
-      }}
+          p: 3, 
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`,
+        }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>

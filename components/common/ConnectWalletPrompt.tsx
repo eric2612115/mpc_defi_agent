@@ -1,8 +1,8 @@
 // components/common/ConnectWalletPrompt.tsx
 'use client';
 import React from 'react';
-import { Box, Typography, Paper, Button, alpha, useTheme } from '@mui/material';
-import { AccountBalanceWallet as WalletIcon, Security as SecurityIcon, SmartToy as SmartToyIcon } from '@mui/icons-material';
+import { alpha, Box, Button, Paper, Typography, useTheme } from '@mui/material';
+import { Security as SecurityIcon, SmartToy as SmartToyIcon, AccountBalanceWallet as WalletIcon } from '@mui/icons-material';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 export default function ConnectWalletPrompt() {

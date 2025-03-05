@@ -1,15 +1,15 @@
 // components/analysis/MarketArticleCard.tsx
 import React, { useState } from 'react';
 import {
-  Card, CardContent, CardMedia, Typography, Box, Avatar, 
-  Chip, Divider, alpha, useTheme, Button
+  alpha, Avatar, Box, Button, Card, CardContent, 
+  CardMedia, Chip, Divider, Typography, useTheme
 } from '@mui/material';
 import { 
-  Schedule as ScheduleIcon,
-  Visibility as VisibilityIcon,
   ArrowForward as ArrowForwardIcon,
+  Schedule as ScheduleIcon,
+  TrendingDown as TrendingDownIcon,
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { MarketAnalysis, Token } from '../../models/MarketAnalysis';
 import ReactMarkdown from 'react-markdown';
@@ -193,19 +193,19 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
         {/* Content Preview or Full Content */}
         <Box
           sx={{ 
-          mb: 2, 
-          color: 'text.secondary', 
-          position: 'relative',
-          overflow: isFullContentVisible ? 'auto' : 'hidden'
-        }}
+            mb: 2, 
+            color: 'text.secondary', 
+            position: 'relative',
+            overflow: isFullContentVisible ? 'auto' : 'hidden'
+          }}
         >
           {expanded || isFullContentVisible ? (
             <Box
               sx={{ 
-              maxHeight: isFullContentVisible ? 'none' : 150, 
-              overflow: isFullContentVisible ? 'visible' : 'hidden', 
-              position: 'relative'
-            }}
+                maxHeight: isFullContentVisible ? 'none' : 150, 
+                overflow: isFullContentVisible ? 'visible' : 'hidden', 
+                position: 'relative'
+              }}
             >
               <Box className="article-content">
                 <ReactMarkdown
@@ -224,12 +224,12 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
                         {props.alt && (
                           <span
                             style={{ 
-                            display: 'block', 
-                            marginTop: '8px', 
-                            color: theme.palette.text.secondary, 
-                            fontStyle: 'italic',
-                            fontSize: '0.875rem'
-                          }}
+                              display: 'block', 
+                              marginTop: '8px', 
+                              color: theme.palette.text.secondary, 
+                              fontStyle: 'italic',
+                              fontSize: '0.875rem'
+                            }}
                           >
                             {props.alt}
                           </span>
@@ -286,13 +286,13 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
               {!isFullContentVisible && (
                 <Box
                   sx={{ 
-                  position: 'absolute', 
-                  bottom: 0, 
-                  left: 0, 
-                  right: 0, 
-                  height: 60, 
-                  background: `linear-gradient(to bottom, ${alpha(theme.palette.background.paper, 0)}, ${theme.palette.background.paper})` 
-                }}
+                    position: 'absolute', 
+                    bottom: 0, 
+                    left: 0, 
+                    right: 0, 
+                    height: 60, 
+                    background: `linear-gradient(to bottom, ${alpha(theme.palette.background.paper, 0)}, ${theme.palette.background.paper})` 
+                  }}
                 />
               )}
             </Box>

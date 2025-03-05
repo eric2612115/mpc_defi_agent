@@ -1,9 +1,9 @@
 // components/analysis/AssetAllocation.tsx
 import React from 'react';
-import { Box, Typography, Avatar, alpha } from '@mui/material';
+import { alpha, Avatar, Box, Typography } from '@mui/material';
 import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  TrendingDown as TrendingDownIcon,
+  TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 
 export interface TokenAllocation {
@@ -51,7 +51,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ tokens }) => {
                 variant="caption"
               >
                 {token.performance > 0 ? <TrendingUpIcon fontSize="inherit" sx={{ mr: 0.5 }} /> : 
-                token.performance < 0 ? <TrendingDownIcon fontSize="inherit" sx={{ mr: 0.5 }} /> : null}
+                  token.performance < 0 ? <TrendingDownIcon fontSize="inherit" sx={{ mr: 0.5 }} /> : null}
                 {token.performance > 0 ? '+' : ''}{token.performance}%
               </Typography>
             </Box>

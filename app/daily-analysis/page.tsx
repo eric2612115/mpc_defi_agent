@@ -1,9 +1,9 @@
 // app/daily-analysis/page.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Grid, Divider, 
-  LinearProgress, alpha, useTheme, CircularProgress
+  alpha, Box, CircularProgress, Divider, 
+  Grid, LinearProgress, Typography, useTheme
 } from '@mui/material';
 import {
   InfoOutlined as InfoIcon,
@@ -107,16 +107,16 @@ export default function DailyAnalysisPage() {
         {!isConnected ? (
           <Box
             sx={{ 
-            textAlign: 'center', 
-            py: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: alpha(theme.palette.background.paper, 0.4),
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.divider}`
-          }}
+              textAlign: 'center', 
+              py: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`
+            }}
           >
             <InfoIcon sx={{ fontSize: 48, color: theme.palette.text.secondary, mb: 2 }} />
             <Typography gutterBottom variant="h6">
@@ -163,12 +163,12 @@ export default function DailyAnalysisPage() {
                   ) : (
                     <Box
                       sx={{ 
-                      p: 4, 
-                      textAlign: 'center',
-                      bgcolor: alpha(theme.palette.background.paper, 0.4),
-                      borderRadius: 2,
-                      border: `1px solid ${theme.palette.divider}`
-                    }}
+                        p: 4, 
+                        textAlign: 'center',
+                        bgcolor: alpha(theme.palette.background.paper, 0.4),
+                        borderRadius: 2,
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
                     >
                       <Typography color="text.secondary" variant="body1">
                         No market analysis available for this date

@@ -1,10 +1,10 @@
 // components/portfolio/DepositDialog.tsx
 import React, { useState } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Box, Typography, Button, TextField, Select,
-  MenuItem, FormControl, InputLabel, IconButton,
-  InputAdornment, SelectChangeEvent
+  Box, Button, Dialog, DialogActions,
+  DialogContent, DialogTitle, FormControl, IconButton, InputAdornment,
+  InputLabel, MenuItem, Select, SelectChangeEvent,
+  TextField, Typography
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 

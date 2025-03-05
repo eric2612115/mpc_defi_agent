@@ -2,15 +2,15 @@
 'use client';
 import React from 'react';
 import {
-  Box, Typography, Grid, Card, CardContent, Container,
-  Divider, Chip, alpha, useTheme
+  alpha, Box, Card, CardContent, Chip, Container,
+  Divider, Grid, Typography, useTheme
 } from '@mui/material';
 import {
-  Security as SecurityIcon,
-  SmartToy as SmartToyIcon,
-  Language as LanguageIcon,
+  Architecture as ArchitectureIcon,
   Code as CodeIcon,
-  Architecture as ArchitectureIcon
+  Language as LanguageIcon,
+  Security as SecurityIcon,
+  SmartToy as SmartToyIcon
 } from '@mui/icons-material';
 import MainLayout from '@/components/layout/MainLayout';
 import FAQ, { FAQItem } from '@/components/about/FAQ';
@@ -114,10 +114,10 @@ export default function AboutPage() {
         {/* Hero Section */}
         <Box
           sx={{ 
-          textAlign: 'center', 
-          mb: 6, 
-          pt: 4
-        }}
+            textAlign: 'center', 
+            mb: 6, 
+            pt: 4
+          }}
         >
           <Typography component="h1" fontWeight={700} gutterBottom variant="h3">
             About AI Trading Assistant
@@ -128,11 +128,11 @@ export default function AboutPage() {
           </Typography>
           <Box
             sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: 2, 
-            flexWrap: 'wrap'
-          }}
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: 2, 
+              flexWrap: 'wrap'
+            }}
           >
             <Chip 
               color="primary" 

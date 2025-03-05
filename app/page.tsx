@@ -1,25 +1,25 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
+  Alert, 
+  alpha, 
   Box, 
-  Typography, 
-  TextField, 
-  IconButton, 
-  Paper, 
+  Card, 
+  CardContent, 
+  Chip,
   CircularProgress,
+  IconButton,
+  Paper,
   Snackbar,
-  Alert,
-  Card,
-  CardContent,
-  useTheme,
-  alpha,
-  Chip
+  TextField,
+  Typography,
+  useTheme
 } from '@mui/material';
 import { 
-  Send as SendIcon,
   SmartToy as AgentIcon,
-  LightbulbOutlined as LightbulbIcon,
   InfoOutlined as InfoIcon,
+  LightbulbOutlined as LightbulbIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
 import { useAccount } from 'wagmi';
 import MainLayout from '@/components/layout/MainLayout';
@@ -116,52 +116,52 @@ export default function HomePage() {
   
         // Handle different message types
         switch (data.message_type) {
-          case 'status':
-            // Status messages (like "AI is preparing...")
-            setMessages(prev => [...prev, safeData]);
-            break;
+        case 'status':
+          // Status messages (like "AI is preparing...")
+          setMessages(prev => [...prev, safeData]);
+          break;
             
-          case 'error':
-            // Error messages
-            setErrorMessage(data.text);
-            setIsTyping(false);
-            setMessages(prev => [...prev, safeData]);
-            break;
+        case 'error':
+          // Error messages
+          setErrorMessage(data.text);
+          setIsTyping(false);
+          setMessages(prev => [...prev, safeData]);
+          break;
             
-          case 'thinking':
-            // AI thinking steps - show these as they come in
-            setMessages(prev => [...prev, safeData]);
-            break;
+        case 'thinking':
+          // AI thinking steps - show these as they come in
+          setMessages(prev => [...prev, safeData]);
+          break;
             
-          case 'tool_call':
-            // Tool usage messages
-            setMessages(prev => [...prev, safeData]);
-            break;
+        case 'tool_call':
+          // Tool usage messages
+          setMessages(prev => [...prev, safeData]);
+          break;
             
-          case 'transaction':
-            // Transaction related messages
-            setMessages(prev => [...prev, safeData]);
-            break;
+        case 'transaction':
+          // Transaction related messages
+          setMessages(prev => [...prev, safeData]);
+          break;
             
-          case 'normal':
-            // Regular messages from the AI
-            setIsTyping(false);
+        case 'normal':
+          // Regular messages from the AI
+          setIsTyping(false);
             
-            // Check if we need to update the message with an action
-            const messageWithAction = {
-              ...safeData,
-              action: data.action ? {
-                ...data.action,
-              } : undefined
-            };
+          // Check if we need to update the message with an action
+          const messageWithAction = {
+            ...safeData,
+            action: data.action ? {
+              ...data.action,
+            } : undefined
+          };
             
-            setMessages(prev => [...prev, messageWithAction]);
-            break;
+          setMessages(prev => [...prev, messageWithAction]);
+          break;
             
-          default:
-            // Handle any other message types
-            setIsTyping(false);
-            setMessages(prev => [...prev, safeData]);
+        default:
+          // Handle any other message types
+          setIsTyping(false);
+          setMessages(prev => [...prev, safeData]);
         }
       } catch (e) {
         console.error("Error parsing WebSocket message:", e);
@@ -285,100 +285,100 @@ export default function HomePage() {
     }
   };
 
-// 修正 handleConfirmTransaction 函數
-const handleConfirmTransaction = async (data: any) => {
+  // 修正 handleConfirmTransaction 函數
+  const handleConfirmTransaction = async (data: any) => {
   // Handle transaction confirmation
-  console.log("Confirming transaction:", data);
+    console.log("Confirming transaction:", data);
   
-  // Add a confirmation message
-  const confirmMessage: StructuredMessageType = {
-    id: Date.now().toString(),
-    sender: 'system',
-    text: 'Transaction confirmed. Processing...',
-    timestamp: new Date().toISOString(),
-    message_type: 'transaction',
-    status: 'pending'
-  };
-  
-  setMessages(prev => [...prev, confirmMessage]);
-  
-  // Simulate transaction process
-  setTimeout(() => {
-    const successMessage: StructuredMessageType = {
+    // Add a confirmation message
+    const confirmMessage: StructuredMessageType = {
       id: Date.now().toString(),
       sender: 'system',
-      text: 'Transaction successfully executed!',
+      text: 'Transaction confirmed. Processing...',
       timestamp: new Date().toISOString(),
       message_type: 'transaction',
-      status: 'completed',
-      action: {
-        type: 'completed',
-        text: 'View Transaction',
-        tx_hash: `0x${Math.random().toString(16).substring(2, 42)}`
-      }
+      status: 'pending'
     };
-    
-    // Update the messages
-    setMessages(prev => [...prev, successMessage]);
-  }, 2000);
-};
-
- // 修正 handleSignTransaction 函數
-const handleSignTransaction = async (data: any) => {
-  console.log("Requesting user signature for data:", data);
   
-  // Simulate a signature prompt
-  const confirmed = window.confirm("Do you want to sign this transaction?");
+    setMessages(prev => [...prev, confirmMessage]);
   
-  if (confirmed) {
-    try {
-      // Simulate sending the signature
-      setTimeout(() => {
-        const successMessage: StructuredMessageType = {
-          id: Date.now().toString(),
-          sender: 'system',
-          text: 'Transaction signed and submitted to blockchain',
-          timestamp: new Date().toISOString(),
-          message_type: 'transaction',
-          status: 'completed',
-          action: {
-            type: 'submitted',
-            text: 'Transaction submitted',
-            tx_hash: data.tx_hash || `0x${Math.random().toString(16).substring(2, 42)}`
-          }
-        };
-        
-        setMessages(prev => [...prev, successMessage]);
-      }, 1500);
-    } catch (error) {
-      console.error('Error sending signature:', error);
-      setErrorMessage("Error sending signature");
-    }
-  } else {
-    console.log("User cancelled signature");
-
-    try {
-      // Simulate rejection response
-      const rejectMessage: StructuredMessageType = {
+    // Simulate transaction process
+    setTimeout(() => {
+      const successMessage: StructuredMessageType = {
         id: Date.now().toString(),
         sender: 'system',
-        text: 'Transaction cancelled by user',
+        text: 'Transaction successfully executed!',
         timestamp: new Date().toISOString(),
         message_type: 'transaction',
-        status: 'error',
+        status: 'completed',
         action: {
-          type: 'rejected',
-          text: 'Transaction rejected',
+          type: 'completed',
+          text: 'View Transaction',
+          tx_hash: `0x${Math.random().toString(16).substring(2, 42)}`
         }
       };
+    
+      // Update the messages
+      setMessages(prev => [...prev, successMessage]);
+    }, 2000);
+  };
+
+  // 修正 handleSignTransaction 函數
+  const handleSignTransaction = async (data: any) => {
+    console.log("Requesting user signature for data:", data);
+  
+    // Simulate a signature prompt
+    const confirmed = window.confirm("Do you want to sign this transaction?");
+  
+    if (confirmed) {
+      try {
+      // Simulate sending the signature
+        setTimeout(() => {
+          const successMessage: StructuredMessageType = {
+            id: Date.now().toString(),
+            sender: 'system',
+            text: 'Transaction signed and submitted to blockchain',
+            timestamp: new Date().toISOString(),
+            message_type: 'transaction',
+            status: 'completed',
+            action: {
+              type: 'submitted',
+              text: 'Transaction submitted',
+              tx_hash: data.tx_hash || `0x${Math.random().toString(16).substring(2, 42)}`
+            }
+          };
+        
+          setMessages(prev => [...prev, successMessage]);
+        }, 1500);
+      } catch (error) {
+        console.error('Error sending signature:', error);
+        setErrorMessage("Error sending signature");
+      }
+    } else {
+      console.log("User cancelled signature");
+
+      try {
+      // Simulate rejection response
+        const rejectMessage: StructuredMessageType = {
+          id: Date.now().toString(),
+          sender: 'system',
+          text: 'Transaction cancelled by user',
+          timestamp: new Date().toISOString(),
+          message_type: 'transaction',
+          status: 'error',
+          action: {
+            type: 'rejected',
+            text: 'Transaction rejected',
+          }
+        };
       
-      setMessages(prev => [...prev, rejectMessage]);
-    } catch (error: any) {
-      console.error('Error rejecting transaction:', error);
-      setErrorMessage(error.message || 'Error rejecting transaction');
+        setMessages(prev => [...prev, rejectMessage]);
+      } catch (error: any) {
+        console.error('Error rejecting transaction:', error);
+        setErrorMessage(error.message || 'Error rejecting transaction');
+      }
     }
-  }
-};
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -450,15 +450,15 @@ const handleSignTransaction = async (data: any) => {
           >
             <Box
               sx={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: '50%', 
-              bgcolor: theme.palette.primary.main,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: theme.palette.primary.contrastText
-            }}
+                width: 40, 
+                height: 40, 
+                borderRadius: '50%', 
+                bgcolor: theme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: theme.palette.primary.contrastText
+              }}
             >
               <AgentIcon />
             </Box>
@@ -506,12 +506,12 @@ const handleSignTransaction = async (data: any) => {
               <Card
                 elevation={0}
                 sx={{ 
-                mb: 2, 
-                borderRadius: 2,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                bgcolor: alpha(theme.palette.background.paper, 0.5),
-                overflow: 'visible'
-              }}
+                  mb: 2, 
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  bgcolor: alpha(theme.palette.background.paper, 0.5),
+                  overflow: 'visible'
+                }}
               >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
@@ -563,15 +563,15 @@ const handleSignTransaction = async (data: any) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 2 }}>
                 <Box
                   sx={{ 
-                  width: 38, 
-                  height: 38, 
-                  borderRadius: '50%', 
-                  bgcolor: theme.palette.primary.main,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: theme.palette.primary.contrastText
-                }}
+                    width: 38, 
+                    height: 38, 
+                    borderRadius: '50%', 
+                    bgcolor: theme.palette.primary.main,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: theme.palette.primary.contrastText
+                  }}
                 >
                   <AgentIcon />
                 </Box>
@@ -598,15 +598,15 @@ const handleSignTransaction = async (data: any) => {
               >
                 <Box
                   sx={{ 
-                  p: 3,
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  color: theme.palette.primary.main,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2
-                }}
+                    p: 3,
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2
+                  }}
                 >
                   <InfoIcon fontSize="large" />
                 </Box>

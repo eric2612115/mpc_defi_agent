@@ -3,15 +3,15 @@
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import { WagmiProvider } from 'wagmi';
-import { mainnet, sepolia, polygon, arbitrum, optimism, base } from 'wagmi/chains';
+import { arbitrum, base, mainnet, optimism, polygon, sepolia } from 'wagmi/chains';
 import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   argentWallet,
-  trustWallet,
   ledgerWallet,
+  trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { RainbowKitProvider, getDefaultWallets, Locale, getDefaultConfig,darkTheme } from '@rainbow-me/rainbowkit';
+import { darkTheme, getDefaultConfig, getDefaultWallets, Locale,RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import ThemeWrapper from './ThemeWrapper'; // Correct relative path
 

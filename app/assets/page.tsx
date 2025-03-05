@@ -1,15 +1,15 @@
 // app/portfolio/page.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Tabs, Tab, TextField, InputAdornment, 
-  Button, IconButton, alpha, useTheme, Alert, AlertTitle, CircularProgress
+  Alert, AlertTitle, alpha, Box, Button, CircularProgress, 
+  IconButton, InputAdornment, Tab, Tabs, TextField, Typography, useTheme
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  FilterList as FilterListIcon,
   Add as AddIcon,
+  FilterList as FilterListIcon,
   Refresh as RefreshIcon,
+  Search as SearchIcon,
   AccountBalanceWallet as WalletIcon
 } from '@mui/icons-material';
 import { useAccount } from 'wagmi';
@@ -160,16 +160,16 @@ export default function PortfolioPage() {
         {!isConnected ? (
           <Box
             sx={{ 
-            textAlign: 'center', 
-            py: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: alpha(theme.palette.background.paper, 0.4),
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.divider}`
-          }}
+              textAlign: 'center', 
+              py: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`
+            }}
           >
             <Box
               sx={{

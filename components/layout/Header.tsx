@@ -1,27 +1,27 @@
 // components/layout/Header.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  alpha,
   AppBar,
-  Toolbar,
-  Typography,
+  Badge,
   Box,
   IconButton,
-  Badge,
-  useTheme,
-  alpha,
-  Menu,
-  MenuItem,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+  useTheme,
 } from '@mui/material';
 import {
+  SmartToy as AgentIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  BarChartOutlined as ChartIcon,
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
-  SmartToy as AgentIcon,
-  BarChartOutlined as ChartIcon,
-  AccountBalanceWalletOutlined as WalletIcon,
-  AutoAwesome as AutoAwesomeIcon
+  AccountBalanceWalletOutlined as WalletIcon
 } from '@mui/icons-material';
 
 // Header component with simplified design
