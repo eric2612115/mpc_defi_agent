@@ -1,18 +1,21 @@
 // components/portfolio/AssetTable.tsx
 import React, { useState } from 'react';
 import {
-  alpha, Avatar, Box, Button, Chip, IconButton, Paper, 
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Tooltip, Typography, useTheme, Pagination
+  alpha, Avatar, Box, Button, Chip, IconButton, Pagination, 
+  Paper, Table, TableBody, TableCell, TableContainer, TableHead, 
+  TableRow, Tooltip, Typography, useTheme
 } from '@mui/material';
 import { 
+  Add as AddIcon, 
   ArrowDownward as ArrowDownwardIcon, 
-  ArrowUpward as ArrowUpwardIcon, 
+  ArrowUpward as ArrowUpwardIcon,
+  Launch as LaunchIcon,
   SwapHoriz as SwapIcon,
-  Launch as LaunchIcon
+  Warning as WarningIcon,
+  CallMade as WithdrawIcon
 } from '@mui/icons-material';
 
-// Asset type definition
+// Asset type definition with extended properties
 export interface Asset {
   id: string;
   name: string;
@@ -22,10 +25,11 @@ export interface Asset {
   value: number;
   change24h: number;
   logoUrl?: string;
-  // Additional fields from API
+  // Additional fields
   chain?: string;
   chainIndex?: string;
   tokenAddress?: string;
+  isWhitelisted?: boolean; // For multi-signature wallet assets
 }
 
 interface AssetTableProps {
@@ -33,6 +37,9 @@ interface AssetTableProps {
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
   onSort: (column: string) => void;
+  walletType?: 'personal' | 'multisig';
+  onDeposit?: (asset: Asset) => void;
+  onWithdraw?: (asset: Asset) => void;
 }
 
 // Map of blockchain explorers for token pages by chain
@@ -64,7 +71,10 @@ const AssetTable: React.FC<AssetTableProps> = ({
   assets, 
   sortColumn, 
   sortDirection, 
-  onSort 
+  onSort, 
+  walletType = 'personal',
+  onDeposit,
+  onWithdraw
 }) => {
   const theme = useTheme();
   // Pagination state
@@ -272,6 +282,35 @@ const AssetTable: React.FC<AssetTableProps> = ({
                               </IconButton>
                             </Tooltip>
                           )}
+                          {/* For multisig wallet: show whitelist status */}
+                          {walletType === 'multisig' && (
+                            <Tooltip 
+                              title={asset.isWhitelisted 
+                                ? "Whitelisted token: can be withdrawn without additional approvals" 
+                                : "Non-whitelisted token: requires additional approvals to withdraw"}
+                            >
+                              <Box sx={{ display: 'inline-flex', ml: 0.5 }}>
+                                {asset.isWhitelisted ? (
+                                  <Chip 
+                                    label="Whitelisted" 
+                                    size="small"
+                                    sx={{ 
+                                      bgcolor: alpha(theme.palette.success.main, 0.1),
+                                      color: theme.palette.success.main,
+                                      height: 20,
+                                      fontSize: '0.7rem'
+                                    }}
+                                  />
+                                ) : (
+                                  <WarningIcon 
+                                    color="warning" 
+                                    fontSize="small" 
+                                    sx={{ fontSize: '1rem' }} 
+                                  />
+                                )}
+                              </Box>
+                            </Tooltip>
+                          )}
                         </Box>
                         <Typography color="text.secondary" variant="caption">
                           {asset.symbol}
@@ -327,18 +366,68 @@ const AssetTable: React.FC<AssetTableProps> = ({
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                      <Button 
-                        color="primary" 
-                        size="small"
-                        startIcon={<SwapIcon />}
-                        sx={{
-                          borderRadius: 1.5,
-                          borderColor: theme.palette.primary.main
-                        }}
-                        variant="outlined"
-                      >
-                        Swap
-                      </Button>
+                      {/* Different actions based on wallet type */}
+                      {walletType === 'personal' ? (
+                        // Personal wallet: Swap and Deposit buttons
+                        <>
+                          <Button 
+                            color="primary" 
+                            size="small"
+                            startIcon={<SwapIcon />}
+                            sx={{
+                              borderRadius: 1.5,
+                              borderColor: theme.palette.primary.main
+                            }}
+                            variant="outlined"
+                          >
+                            Swap
+                          </Button>
+                          {onDeposit && (
+                            <Button 
+                              color="success" 
+                              onClick={() => onDeposit(asset)}
+                              size="small"
+                              startIcon={<AddIcon />}
+                              sx={{
+                                borderRadius: 1.5,
+                              }}
+                              variant="outlined"
+                            >
+                              Deposit
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                      // Multi-signature wallet: Withdraw button
+                        <>
+                          <Button 
+                            color="primary" 
+                            size="small"
+                            startIcon={<SwapIcon />}
+                            sx={{
+                              borderRadius: 1.5,
+                              borderColor: theme.palette.primary.main
+                            }}
+                            variant="outlined"
+                          >
+                            Swap
+                          </Button>
+                          {onWithdraw && (
+                            <Button 
+                              color="warning" 
+                              onClick={() => onWithdraw(asset)}
+                              size="small"
+                              startIcon={<WithdrawIcon />}
+                              sx={{
+                                borderRadius: 1.5,
+                              }}
+                              variant="outlined"
+                            >
+                              Withdraw
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -352,10 +441,10 @@ const AssetTable: React.FC<AssetTableProps> = ({
       {assets.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
           <Pagination 
-            count={totalPages}
-            page={page}
-            onChange={handlePageChange}
             color="primary"
+            count={totalPages}
+            onChange={handlePageChange}
+            page={page}
             shape="rounded"
             showFirstButton
             showLastButton

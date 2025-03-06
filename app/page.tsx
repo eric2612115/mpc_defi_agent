@@ -187,10 +187,9 @@ export default function HomePage() {
     setWebsocket(ws);
   };
 
-
   const fetchPreviousMessages = async () => {
     if (!address) return;
-  
+
     try {
       // First try to use the apiClient - the most robust approach
       const response = await apiClient.getUserMessages(address);
@@ -201,7 +200,7 @@ export default function HomePage() {
           ...msg,
           timestamp: formatTimestamp(msg.timestamp) 
         }));
-  
+
         if (formattedMessages.length > 0) {
           setMessages(formattedMessages);
           return;
@@ -209,7 +208,33 @@ export default function HomePage() {
       } 
       
       // If no messages were found via API client, or if there was an error,
-      // fallback to welcome message
+      // fallback to direct fetch (with error handling)
+      try {
+        const directResponse = await fetch(`/api/messages?wallet_address=${address}`);
+        
+        if (!directResponse.ok) {
+          console.warn('Direct fetch for messages failed. Using welcome message.');
+          // Instead of throwing, we'll gracefully handle by showing welcome message
+        } else {
+          const data = await directResponse.json();
+          
+          if (data.messages && data.messages.length > 0) {
+            const formattedMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: formatTimestamp(msg.timestamp)
+            }));
+            
+            setMessages(formattedMessages);
+            return;
+          }
+        }
+      } catch (directError) {
+        console.warn('Error in direct fetch fallback:', directError);
+        // Continue to fallback message
+      }
+      
+      // Fallback: If both methods failed to get messages or returned empty arrays,
+      // show a welcome message
       if (messages.length === 0) {
         setMessages([
           {

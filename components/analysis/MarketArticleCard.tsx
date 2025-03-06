@@ -1,4 +1,4 @@
-// components/analysis/MarketArticleCard.tsx
+// components/analysis/MarketArticleCard.tsx - Updated with character encoding fix
 import React, { useState } from 'react';
 import {
   alpha, Avatar, Box, Button, Card, CardContent, 
@@ -13,14 +13,35 @@ import {
 } from '@mui/icons-material';
 import { MarketAnalysis, Token } from '../../models/MarketAnalysis';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'; // 用於支持表格等GitHub風格的Markdown
+import remarkGfm from 'remark-gfm'; // For supporting tables and GitHub-flavored Markdown
 
-interface MarketArticleCardProps {
-  article: MarketAnalysis;
-  expanded?: boolean;
+// Helper function to sanitize title text to prevent encoding issues
+const sanitizeTitle = (text: string) => {
+  // Replace problematic characters or patterns
+  return text
+    .replace(/'/g, "'") // Replace fancy apostrophes with straight ones
+    .replace(/"/g, '"') // Replace fancy quotes with straight ones
+    .replace(/…/g, '...') // Replace ellipsis character
+    .replace(/[^\x00-\x7F]/g, (char) => {
+      // Log any non-ASCII characters for debugging
+      console.log(`Replacing non-ASCII character: ${char} (${char.charCodeAt(0)})`);
+      
+      // Handle common special characters
+      if (char === '’') return "'";
+      if (char === '"' || char === '"') return '"';
+      if (char === '—') return '-';
+      if (char === '–') return '-';
+      
+      // Default replacement for other non-ASCII characters
+      return '';
+    });
+};
+
+interface TokenChipProps {
+  token: Token;
 }
 
-const TokenChip: React.FC<{ token: Token }> = ({ token }) => {
+const TokenChip: React.FC<TokenChipProps> = ({ token }) => {
   const theme = useTheme();
   
   return (
@@ -79,9 +100,16 @@ const TokenChip: React.FC<{ token: Token }> = ({ token }) => {
   );
 };
 
+interface MarketArticleCardProps {
+  article: MarketAnalysis;
+  expanded?: boolean;
+}
+
 const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded = false }) => {
   const theme = useTheme();
   const [isFullContentVisible, setIsFullContentVisible] = useState(false);
+  
+  // Format the date
   const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -90,6 +118,9 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
   
   // For compact view, limit to the first 3 tokens
   const displayTokens = expanded ? article.featuredTokens : article.featuredTokens.slice(0, 3);
+  
+  // Sanitize the title to prevent encoding issues
+  const safeTitle = sanitizeTitle(article.title);
   
   // Handle content display based on view mode and expand state
   const getDisplayContent = () => {
@@ -126,7 +157,7 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
     >
       {/* Cover Image */}
       <CardMedia
-        alt={article.title}
+        alt={safeTitle}
         component="img"
         height={200}
         image={article.coverImage}
@@ -155,7 +186,7 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
         
         {/* Title */}
         <Typography component="h2" fontWeight={600} gutterBottom variant="h5">
-          {article.title}
+          {safeTitle}
         </Typography>
         
         {/* Author & Metadata */}
@@ -211,7 +242,7 @@ const MarketArticleCard: React.FC<MarketArticleCardProps> = ({ article, expanded
                 <ReactMarkdown
                   components={{
                     img: ({ ...props }) => (
-                      // 使用 span 而不是 Box 來避免 hydration 錯誤
+                      // Use span instead of Box to avoid hydration errors
                       <span style={{ display: 'block', margin: '16px 0', textAlign: 'center' }}>
                         <img 
                           {...props} 

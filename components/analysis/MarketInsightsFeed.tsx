@@ -1,35 +1,61 @@
 // components/analysis/MarketInsightsFeed.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   alpha, Box, Button, Card, CardContent, Chip, CircularProgress, 
-  Divider, IconButton, Link, List, ListItem, ListItemText,
-  Paper, Tooltip, Typography, useTheme
+  Divider, IconButton, Paper, Tooltip, Typography, useTheme
 } from '@mui/material';
 import {
   ArrowForward as ArrowForwardIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
+  Launch as LaunchIcon,
   Refresh as RefreshIcon,
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import { MarketInsight } from '../../models/MarketAnalysis';
-import ReactMarkdown from 'react-markdown';
+
+// Extended interface to include card_text
+interface ExtendedMarketInsight extends MarketInsight {
+  card_text?: string;
+  excerpt?: string;
+}
 
 interface MarketInsightsFeedProps {
-  insights: MarketInsight[];
+  insights: ExtendedMarketInsight[];
   isLoading?: boolean;
   onRefresh?: () => void;
   lastUpdated?: string;
+  title?: string;
+  showExternalLinks?: boolean;
+  showExcerpt?: boolean;
+  initialDisplayCount?: number;
+  incrementCount?: number;
+  maxDisplayCount?: number;
 }
 
 const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({ 
   insights, 
   isLoading = false,
   onRefresh,
-  lastUpdated
+  lastUpdated,
+  title = "Market Insights",
+  showExternalLinks = false,
+  showExcerpt = true,
+  initialDisplayCount = 5,
+  incrementCount = 5,
+  maxDisplayCount = 20
 }) => {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [refreshTime, setRefreshTime] = useState<Date>(new Date());
+  const [displayCount, setDisplayCount] = useState(initialDisplayCount);
+  const [hasMore, setHasMore] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Reset display count when insights change
+  useEffect(() => {
+    setDisplayCount(initialDisplayCount);
+    setHasMore(insights.length > initialDisplayCount);
+  }, [insights, initialDisplayCount]);
   
   // Format date/time to display how long ago
   const formatTimeAgo = (dateStr: string) => {
@@ -48,37 +74,32 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
     return `${diffDays}d ago`;
   };
   
-  // Get icon for importance level
-  const getImportanceIcon = (importance: 'low' | 'medium' | 'high') => {
-    if (importance === 'high') {
-      return <ErrorIcon color="error" fontSize="small" />;
-    } else if (importance === 'medium') {
-      return <TrendingUpIcon color="primary" fontSize="small" />;
-    } else {
-      return <InfoIcon color="action" fontSize="small" />;
-    }
+  // Handle loading more insights
+  const handleLoadMore = () => {
+    const newDisplayCount = Math.min(displayCount + incrementCount, insights.length);
+    setDisplayCount(newDisplayCount);
+    setHasMore(newDisplayCount < insights.length && newDisplayCount < maxDisplayCount);
   };
   
-  // Get background color for importance level
-  const getImportanceBgColor = (importance: 'low' | 'medium' | 'high') => {
-    if (importance === 'high') {
-      return alpha(theme.palette.error.main, 0.05);
-    } else if (importance === 'medium') {
-      return alpha(theme.palette.primary.main, 0.05);
-    } else {
-      return alpha(theme.palette.grey[500], 0.05);
+  // Handle news item click
+  const handleItemClick = (insight: ExtendedMarketInsight) => {
+    if (insight.url && showExternalLinks) {
+      window.open(insight.url, '_blank');
     }
   };
   
   return (
     <Card 
-      elevation={0} 
+      elevation={2} 
       sx={{ 
-        border: `1px solid ${theme.palette.divider}`,
+        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
         borderRadius: 2,
-        height: '100%',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        bgcolor: alpha('#F2E6C7', 0.7),
+        position: 'relative',
+        height: '600px', // Fixed height
+        width: '100%',
       }}
     >
       {/* Header */}
@@ -89,24 +110,29 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
           alignItems: 'center', 
           justifyContent: 'space-between',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          bgcolor: alpha(theme.palette.background.paper, 0.6)
+          bgcolor: alpha(theme.palette.background.paper, 0.3)
         }}
       >
         <Typography fontWeight={600} variant="h6">
-          Market Insights
+          {title}
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {lastUpdated && (
-            <Typography color="text.secondary" sx={{ mr: 1 }} variant="caption">
-              Updated: {formatTimeAgo(lastUpdated)}
-            </Typography>
-          )}
+          <Typography color="text.secondary" sx={{ mr: 1 }} variant="caption">
+            Updated: {formatTimeAgo(refreshTime.toISOString())}
+          </Typography>
           
           <Tooltip title="Refresh insights">
             <IconButton 
               disabled={isLoading}
-              onClick={onRefresh}
+              onClick={() => {
+                if (onRefresh) {
+                  onRefresh();
+                }
+                setRefreshTime(new Date());
+                setDisplayCount(initialDisplayCount);
+                setHasMore(insights.length > initialDisplayCount);
+              }}
               size="small"
             >
               {isLoading ? 
@@ -118,13 +144,29 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
         </Box>
       </Box>
       
-      {/* Insights Feed */}
+      {/* Insights Feed - With Fixed Height and Scrollbar */}
       <Box 
+        ref={scrollContainerRef}
         sx={{ 
           flexGrow: 1, 
           overflowY: 'auto',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          height: {xs: 'auto', md: '500px'}, // Fixed height for desktop
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: alpha(theme.palette.background.default, 0.4),
+            borderRadius: '10px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: alpha(theme.palette.primary.main, 0.2),
+            borderRadius: '10px',
+            '&:hover': {
+              background: alpha(theme.palette.primary.main, 0.4),
+            },
+          },
         }}
       >
         {isLoading && insights.length === 0 ? (
@@ -154,107 +196,117 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
             </Typography>
           </Box>
         ) : (
-          <List sx={{ p: 0 }}>
-            {insights.map((insight) => (
-              <React.Fragment key={insight._id}>
-                <ListItem 
-                  onClick={() => {
-                    if (insight.url) {
-                      window.open(insight.url, '_blank');
-                    } else {
-                      setExpanded(expanded === insight._id ? null : insight._id);
-                    }
-                  }}
-                  sx={{ 
-                    py: 2, 
-                    px: 2, 
-                    bgcolor: getImportanceBgColor(insight.importance),
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.08)
-                    },
-                    cursor: insight.url ? 'pointer' : 'default'
-                  }}
-                >
+          <Box sx={{ p: 2 }}>
+            {insights.slice(0, displayCount).map((insight) => (
+              <Paper
+                key={insight._id}
+                elevation={1}
+                onClick={() => handleItemClick(insight)}
+                sx={{ 
+                  mb: 2,
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  cursor: (insight.url && showExternalLinks) ? 'pointer' : 'default',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 3
+                  }
+                }}
+              >
+                <Box sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', width: '100%' }}>
-                    <Box sx={{ pr: 1.5, pt: 0.5 }}>
-                      {getImportanceIcon(insight.importance)}
+                    <Box sx={{ pr: 1.5, pt: 0.5, color: theme.palette.secondary.main }}>
+                      <TrendingUpIcon fontSize="small" />
                     </Box>
                     <Box sx={{ width: '100%' }}>
-                      <Box sx={{ mb: 1 }}>
-                        <ReactMarkdown>
-                          {insight.content}
-                        </ReactMarkdown>
-                      </Box>
+                      {/* Title */}
+                      <Typography fontWeight={500} variant="body1">
+                        {insight.content}
+                      </Typography>
                       
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Box>
-                          {insight.relatedTokens.map((token) => (
-                            <Chip
-                              key={token}
-                              label={token}
-                              size="small"
-                              sx={{ 
-                                mr: 0.5, 
-                                height: 20, 
-                                fontSize: '0.7rem',
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.main
-                              }}
-                            />
-                          ))}
-                        </Box>
+                      {/* Card Text / Excerpt */}
+                      {showExcerpt && (
+                        <Typography 
+                          color="text.secondary" 
+                          sx={{ 
+                            mt: 1, 
+                            mb: 1.5,
+                            fontSize: '0.85rem',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            lineHeight: 1.5
+                          }} 
+                          variant="body2"
+                        >
+                          {insight.card_text || ''}
+                        </Typography>
+                      )}
+                      
+                      {/* Source, Time and Link */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <Typography color="text.secondary" variant="caption">
+                          just now
+                        </Typography>
                         
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography color="text.secondary" variant="caption">
-                            {formatTimeAgo(insight.publishedAt)}
-                          </Typography>
-                          
-                          {insight.source && (
+                        {insight.source && (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Typography 
                               color="text.secondary" 
-                              sx={{ ml: 1 }}
+                              sx={{ mx: 1 }}
                               variant="caption"
                             >
-                              • {insight.source}
+                              •
                             </Typography>
-                          )}
-                          
-                          {insight.url && (
-                            <Tooltip title="View source">
-                              <ArrowForwardIcon 
-                                fontSize="inherit" 
-                                sx={{ ml: 0.5, fontSize: '0.875rem', color: theme.palette.primary.main }} 
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
+                            <Typography 
+                              color="text.secondary" 
+                              variant="caption"
+                            >
+                              {insight.source}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {insight.url && showExternalLinks && (
+                          <Box sx={{ ml: 1 }}>
+                            <LaunchIcon 
+                              fontSize="inherit" 
+                              sx={{ fontSize: '0.875rem', color: theme.palette.primary.main }} 
+                            />
+                          </Box>
+                        )}
                       </Box>
                     </Box>
                   </Box>
-                </ListItem>
-                <Divider />
-              </React.Fragment>
+                </Box>
+              </Paper>
             ))}
-          </List>
+            
+            {/* "View More" button */}
+            {hasMore && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 1 }}>
+                <Button
+                  color="primary"
+                  disabled={isLoading}
+                  endIcon={<ArrowForwardIcon />}
+                  onClick={handleLoadMore}
+                  size="small"
+                  sx={{ 
+                    textTransform: 'none', 
+                    borderRadius: 2,
+                    boxShadow: theme.shadows[1]
+                  }}
+                  variant="contained"
+                >
+                  Load More
+                </Button>
+              </Box>
+            )}
+          </Box>
         )}
-      </Box>
-      
-      {/* Footer */}
-      <Box 
-        sx={{ 
-          p: 2, 
-          borderTop: `1px solid ${theme.palette.divider}`,
-          display: 'flex',
-          justifyContent: 'center'
-        }}
-      >
-        <Button 
-          size="small" 
-          sx={{ textTransform: 'none', borderRadius: 2 }}
-          variant="outlined"
-        >
-          View All Updates
-        </Button>
       </Box>
     </Card>
   );

@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx
+// components/layout/Sidebar.tsx (Updated with higher z-index)
 'use client';
 import React, { useEffect, useState } from 'react';
 import {
@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   Drawer,
   IconButton,
@@ -20,8 +21,7 @@ import {
   Menu,
   MenuItem,
   Typography,
-  useTheme,
-  CircularProgress
+  useTheme
 } from '@mui/material';
 import {
   AccountCircle as AccountIcon,
@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAccount, useConfig, useDisconnect, useSwitchChain, useAccountEffect } from 'wagmi';
+import { useAccount, useAccountEffect, useConfig, useDisconnect, useSwitchChain } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import apiClient from '@/lib/apiClient';
@@ -436,7 +436,7 @@ export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProp
                 {loadingBalance ? (
                   <CircularProgress size={16} sx={{ color: 'white', mr: 1 }} />
                 ) : (
-                  `$${totalBalance}`
+                  `${totalBalance}`
                 )}
               </Typography>
             </Box>
@@ -619,7 +619,8 @@ export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProp
           bgcolor: '#F8EDD7',
           height: '100%',
           boxShadow: 'none',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          zIndex: 1250, // 確保 Sidebar 在 Header 上方
         },
       }}
       variant="permanent"

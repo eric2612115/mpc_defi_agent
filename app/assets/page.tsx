@@ -16,57 +16,19 @@ import { useAccount } from 'wagmi';
 import MainLayout from '@/components/layout/MainLayout';
 import AssetTable from '@/components/portfolio/AssetTable';
 import TransactionHistory from '@/components/portfolio/TransactionHistory';
-import WalletOverview from '@/components/portfolio/WalletOverview';
+import QuickTransferCard from '@/components/portfolio/QuickTransferCard';
 import DepositDialog from '@/components/portfolio/DepositDialog';
 import type { Asset } from '@/components/portfolio/AssetTable';
 import type { Transaction } from '@/components/portfolio/TransactionHistory';
-import type { Wallet } from '@/components/portfolio/WalletOverview';
 
-// API response types
-interface AssetResponse {
-  chain: string;
-  chainIndex: string;
-  symbol: string;
-  balance: string;
-  tokenPrice: string;
-  value: string;
-  tokenAddress: string;
-  tokenType: string;
-  isRiskToken: boolean;
-  icon: string | null;
-  transferAmount: string;
-  availableAmount: string;
+// API URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
+
+// Multisig wallet interface
+interface MultisigWallet {
+  name: string;
+  multisig_address: string;
 }
-
-interface TransactionResponse {
-  chain: string;
-  chainIndex: string;
-  txHash: string;
-  type: string;
-  details: string;
-  amount: string;
-  value: string;
-  time: string;
-  status: string;
-  icon: string | null;
-  tokenAddress: string;
-  hitBlacklist: boolean;
-  itype: string;
-  tag: string;
-}
-
-interface BalanceResponse {
-  code: string;
-  msg: string;
-  data: [{ totalValue: string }];
-}
-
-// For mock data when needed
-const mockAssets: Asset[] = [
-  { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 2.5, price: 3500, value: 8750, change24h: 1.2, logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
-  { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 5000, price: 1, value: 5000, change24h: 0, logoUrl: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
-  { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 100, price: 15, value: 1500, change24h: -0.5, logoUrl: 'https://cryptologos.cc/logos/chainlink-link-logo.png' },
-];
 
 export default function PortfolioPage() {
   const theme = useTheme();
@@ -79,50 +41,89 @@ export default function PortfolioPage() {
   const [sortColumn, setSortColumn] = useState('value');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [successAlert, setSuccessAlert] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
+  // Wallet type
+  const walletType = tabValue === 0 ? 'personal' : 'multisig';
 
   // Data states
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [personalAssets, setPersonalAssets] = useState<Asset[]>([]);
+  const [multisigAssets, setMultisigAssets] = useState<Asset[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [walletData, setWalletData] = useState<Wallet | null>(null);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [relatedMultisigWallets, setRelatedMultisigWallets] = useState<MultisigWallet[]>([]);
   
   // Loading states
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
-  const [loadingWallet, setLoadingWallet] = useState(false);
+  const [loadingRelatedWallets, setLoadingRelatedWallets] = useState(false);
+
   
-  // Error states
-  const [errorAssets, setErrorAssets] = useState<string | null>(null);
-  const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
-  const [errorWallet, setErrorWallet] = useState<string | null>(null);
+  // Current assets based on selected wallet type
+  const currentAssets = walletType === 'personal' ? personalAssets : multisigAssets;
 
   // Fix hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch data when wallet is connected
+  // Fetch related multisig wallets when connected
   useEffect(() => {
     if (mounted && isConnected && address) {
-      fetchAllData();
+      fetchRelatedMultisigWallets();
     }
-  }, [mounted, isConnected, address, tabValue]);
+  }, [mounted, isConnected, address]);
 
-  // Fetch all data from APIs
-  const fetchAllData = async () => {
-    fetchAssets();
-    fetchTransactions();
-    fetchWalletOverview();
+  // Fetch assets when wallet connected or tab changes
+  useEffect(() => {
+    if (mounted && isConnected && address) {
+      if (walletType === 'personal') {
+        fetchPersonalAssets();
+      } else {
+        fetchMultisigAssets();
+      }
+      fetchTransactions();
+    }
+  }, [mounted, isConnected, address, walletType]);
+
+  // Fetch related multisig wallets
+  const fetchRelatedMultisigWallets = async () => {
+    if (!address) return;
+    
+    setLoadingRelatedWallets(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/get-wallets-related-multi-sig-wallets?wallet_address=${address}`);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setRelatedMultisigWallets(data);
+      console.log("Retrieved multisig wallets:", data);
+    } catch (error) {
+      console.error('Error fetching related multisig wallets:', error);
+      // Use mock data as fallback
+      setRelatedMultisigWallets([
+        { name: "Multi-Sig Wallet 1", multisig_address: "0x1234567890abcdef1234567890abcdef12345678" },
+        { name: "Multi-Sig Wallet 2", multisig_address: "0xabcdef1234567890abcdef1234567890abcdef12" }
+      ]);
+    } finally {
+      setLoadingRelatedWallets(false);
+    }
   };
 
-  // Fetch assets data using Next.js API route as proxy
-  const fetchAssets = async () => {
+  // Fetch personal wallet assets
+  const fetchPersonalAssets = async () => {
     if (!address) return;
     
     setLoadingAssets(true);
-    setErrorAssets(null);
     
     try {
-      const response = await fetch('/api/total-balance-detail', {
+      // Use total-balance-detail API
+      const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,47 +132,126 @@ export default function PortfolioPage() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
       }
       
-      const data = await response.json() as AssetResponse[];
+      const data = await response.json();
       
-      // Format the data to match the Asset interface
-      const formattedAssets: Asset[] = data.map((item, index) => ({
+      // Convert API data to Asset format
+      const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
         id: index.toString(),
-        name: item.symbol, // Using symbol as name since the API doesn't provide a separate name
+        name: item.symbol, // Use symbol as name since API doesn't provide name
         symbol: item.symbol,
         balance: parseFloat(item.balance) || 0,
         price: parseFloat(item.tokenPrice) || 0,
         value: parseFloat(item.value) || 0,
         change24h: 0, // API doesn't provide 24h change, default to 0
-        logoUrl: item.icon || undefined,
         chain: item.chain,
-        tokenAddress: item.tokenAddress
+        chainIndex: item.chainIndex,
+        tokenAddress: item.tokenAddress,
+        logoUrl: item.icon || undefined,
       }));
       
-      setAssets(formattedAssets);
-    } catch (error) {
-      console.error('Error fetching assets:', error);
-      setErrorAssets('Failed to load assets. Please try again later.');
+      setPersonalAssets(formattedAssets);
       
-      // Use mock data in case of error for development
-      setAssets(mockAssets);
+      // Calculate total balance
+      const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+      if (walletType === 'personal') {
+        setTotalBalance(total);
+      }
+    } catch (error) {
+      console.error('Error fetching personal assets:', error);
+      // Use mock data as fallback
+      setPersonalAssets([
+        { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 2.5, price: 3500, value: 8750, change24h: 1.2, chain: 'Ethereum' },
+        { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 5000, price: 1, value: 5000, change24h: 0, chain: 'Ethereum' },
+        { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 100, price: 15, value: 1500, change24h: -0.5, chain: 'Ethereum' }
+      ]);
+      
+      if (walletType === 'personal') {
+        setTotalBalance(15250); // Mock total balance
+      }
     } finally {
       setLoadingAssets(false);
     }
   };
 
-  // Fetch transaction history using Next.js API route as proxy
+  // Fetch multisig wallet assets
+  const fetchMultisigAssets = async () => {
+    if (!address || relatedMultisigWallets.length === 0) return;
+    
+    setLoadingAssets(true);
+    
+    try {
+      // Use the first multisig wallet address
+      // In a real app, you might want to let the user select which multisig wallet to use
+      const multisigAddress = relatedMultisigWallets[0].multisig_address;
+      
+      // Use the same API endpoint with multisig address
+      const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: multisigAddress }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Convert API data to Asset format with random whitelist status (should come from API)
+      const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
+        id: index.toString(),
+        name: item.symbol,
+        symbol: item.symbol,
+        balance: parseFloat(item.balance) || 0,
+        price: parseFloat(item.tokenPrice) || 0,
+        value: parseFloat(item.value) || 0,
+        change24h: 0,
+        chain: item.chain,
+        chainIndex: item.chainIndex,
+        tokenAddress: item.tokenAddress,
+        logoUrl: item.icon || undefined,
+        // Simulate whitelist status - should come from API
+        isWhitelisted: Math.random() > 0.3 // 70% chance of being whitelisted
+      }));
+      
+      setMultisigAssets(formattedAssets);
+      
+      // Calculate total balance
+      const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+      if (walletType === 'multisig') {
+        setTotalBalance(total);
+      }
+    } catch (error) {
+      console.error('Error fetching multisig assets:', error);
+      // Use mock data as fallback
+      setMultisigAssets([
+        { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 1.8, price: 3500, value: 6300, change24h: 1.2, chain: 'Ethereum', isWhitelisted: true },
+        { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 10000, price: 1, value: 10000, change24h: 0, chain: 'Ethereum', isWhitelisted: true },
+        { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 80, price: 15, value: 1200, change24h: -0.5, chain: 'Ethereum', isWhitelisted: false }
+      ]);
+      
+      if (walletType === 'multisig') {
+        setTotalBalance(17500); // Mock total balance
+      }
+    } finally {
+      setLoadingAssets(false);
+    }
+  };
+
+  // Fetch transaction history
   const fetchTransactions = async () => {
     if (!address) return;
     
     setLoadingTransactions(true);
-    setErrorTransactions(null);
     
     try {
-      const response = await fetch('/api/wallet-transaction-history', {
+      // Use wallet-transaction-history API
+      const response = await fetch(`${API_BASE_URL}/api/wallet-transaction-history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,25 +260,25 @@ export default function PortfolioPage() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
       }
       
-      const data = await response.json() as TransactionResponse[];
+      const data = await response.json();
       
-      // Format the data to match the Transaction interface
-      const formattedTransactions: Transaction[] = data.map(item => {
-        const parsedAmount = item.amount.split(' ');
+      // Convert API data to Transaction format
+      const formattedTransactions: Transaction[] = data.map((item: any) => {
+        const type = item.type === 'Send' ? 'Send' : 
+          item.type === 'Receive' ? 'Receive' : 'Swap';
         
         return {
           hash: item.txHash,
-          type: item.type as 'Swap' | 'Send' | 'Receive',
-          from: item.type === 'Receive' ? 'External' : 'Personal Wallet',
-          to: item.type === 'Send' ? 'External' : 'Personal Wallet',
+          type: type as 'Send' | 'Receive' | 'Swap',
+          from: type === 'Receive' ? 'External' : 'Personal Wallet',
+          to: type === 'Send' ? 'External' : 'Personal Wallet',
           amount: item.amount,
-          value: item.value ? `$${item.value}` : `${parsedAmount[0]} ${parsedAmount[1] || ''}`,
+          value: item.value || item.amount,
           timestamp: item.time,
-          status: item.status.toLowerCase() as 'pending' | 'completed' | 'failed' | 'success',
+          status: item.status.toLowerCase() as 'pending' | 'completed' | 'failed',
           chain: item.chain,
           details: item.details
         };
@@ -207,123 +287,155 @@ export default function PortfolioPage() {
       setTransactions(formattedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      setErrorTransactions('Failed to load transaction history. Please try again later.');
-      
-      // Use empty array in case of error
-      setTransactions([]);
+      // Use mock data as fallback
+      setTransactions([
+        {
+          hash: '0x1234...5678',
+          type: 'Swap',
+          from: 'ETH',
+          to: 'USDC',
+          amount: '1.5 ETH',
+          value: '$5,250.00',
+          timestamp: '2025-03-05 14:30',
+          status: 'completed',
+          chain: 'Ethereum'
+        },
+        {
+          hash: '0xabcd...ef01',
+          type: 'Send',
+          from: 'Personal Wallet',
+          to: 'Multi-Sig Wallet',
+          amount: '1000 USDC',
+          value: '$1,000.00',
+          timestamp: '2025-03-04 09:15',
+          status: 'completed',
+          chain: 'Ethereum'
+        }
+      ]);
     } finally {
       setLoadingTransactions(false);
     }
   };
 
-  // Fetch wallet overview data using Next.js API route as proxy
-  const fetchWalletOverview = async () => {
-    if (!address) return;
-  
-    setLoadingWallet(true);
-    setErrorWallet(null);
-  
-    try {
-      const response = await fetch('/api/total-balance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wallet_address: address }),
-      });
-    
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error ${response.status}`);
-      }
-    
-      const data = await response.json();
-    
-      // More defensive parsing of the response
-      let totalValue = 0;
-    
-      // Check the structure of the response data
-      if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
-      // Direct access to totalValue if available
-        if (data.data[0] && typeof data.data[0].totalValue === 'string') {
-          totalValue = parseFloat(data.data[0].totalValue);
-        }
-      } else if (data && typeof data.totalValue === 'string') {
-      // Alternative structure
-        totalValue = parseFloat(data.totalValue);
-      } else if (data && typeof data.totalValue === 'number') {
-      // Already a number
-        totalValue = data.totalValue;
-      } else {
-        console.log("Unexpected response format:", data);
-      }
-    
-      // Ensure totalValue is a valid number
-      if (isNaN(totalValue)) {
-        totalValue = 0;
-      }
-    
-      // Format the wallet data
-      const formattedWallet: Wallet = {
-        address: address,
-        totalValue: totalValue,
-        change24h: 0, // API doesn't provide 24h change, default to 0
-      };
-    
-      setWalletData(formattedWallet);
-    } catch (error) {
-      console.error('Error fetching wallet overview:', error);
-      setErrorWallet('Failed to load wallet data. Please try again later.');
-    
-      // Use mock wallet data in case of error
-      setWalletData({
-        address: address,
-        totalValue: 0,
-        change24h: 0
-      });
-    } finally {
-      setLoadingWallet(false);
-    }
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
+  // Refresh all data
   const handleRefresh = () => {
     setRefreshing(true);
-    // Fetch fresh data
-    fetchAllData().finally(() => {
+    
+    Promise.all([
+      walletType === 'personal' ? fetchPersonalAssets() : fetchMultisigAssets(),
+      fetchTransactions()
+    ]).finally(() => {
       setRefreshing(false);
+      setSuccessMessage('Assets refreshed successfully');
+      setSuccessAlert(true);
+      setTimeout(() => setSuccessAlert(false), 3000);
     });
   };
 
-  const handleDepositOpen = () => {
+  // Handle tab change
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    setSearch(''); // Clear search
+    setSortColumn('value'); // Reset sort to default
+    setSortDirection('desc'); // Reset sort direction to default
+  };
+
+  // Open deposit dialog
+  const handleDepositOpen = (asset?: Asset) => {
+    setSelectedAsset(asset || null);
     setDepositOpen(true);
   };
 
+  // Close deposit dialog
   const handleDepositClose = () => {
+    setSelectedAsset(null);
     setDepositOpen(false);
   };
 
+  // Handle deposit submit
   const handleDepositSubmit = (token: string, amount: string) => {
     console.log('Depositing', amount, token);
     handleDepositClose();
-    // Show success message
+    
+    // Simulate API call
+    setSuccessMessage(`Successfully deposited ${amount} ${token}`);
+    setSuccessAlert(true);
+    setTimeout(() => setSuccessAlert(false), 3000);
+    
+    // Refresh assets
+    setTimeout(() => {
+      if (walletType === 'personal') {
+        fetchPersonalAssets();
+      } else {
+        fetchMultisigAssets();
+      }
+    }, 1000);
+  };
+  
+  // Update your existing handlePersonalDeposit function
+  const handlePersonalDeposit = (asset: Asset) => {
+    console.log('Deposit to personal wallet:', asset);
+    setSelectedAsset(asset);
+    setDepositOpen(true);
+  };
+
+  // Add this before the return statement
+  const availableTokensForTransfer = currentAssets.map(asset => ({
+    symbol: asset.symbol,
+    name: asset.name,
+    balance: asset.balance,
+    value: asset.value
+  }));
+
+  const tokenBalancesMap = currentAssets.reduce((acc, asset) => {
+    acc[asset.symbol] = asset.balance;
+    return acc;
+  }, {} as {[key: string]: number});
+  
+  // Handle withdraw action on asset
+  const handleMultisigWithdraw = (asset: Asset) => {
+    console.log('Withdraw from multisig wallet:', asset);
+    
+    // Simulate API call
+    if (asset.isWhitelisted) {
+      // Direct withdrawal
+      setSuccessMessage(`Withdrawing ${asset.balance} ${asset.symbol} from Multi-Signature wallet`);
+    } else {
+      // Additional approval required
+      setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol}. Additional approval required for non-whitelisted assets.`);
+    }
+    
     setSuccessAlert(true);
     setTimeout(() => setSuccessAlert(false), 5000);
   };
 
+  // Handle transfer between wallets
+  const handleTransfer = (data: { token: string; amount: string; recipient: string }) => {
+    console.log('Transferring', data.amount, data.token, 'to', data.recipient);
+    
+    // Simulate API call
+    setSuccessMessage(`Successfully transferred ${data.amount} ${data.token} to ${data.recipient.substring(0, 6)}...${data.recipient.substring(data.recipient.length - 4)}`);
+    setSuccessAlert(true);
+    setTimeout(() => setSuccessAlert(false), 3000);
+    
+    // Refresh assets after transfer
+    setTimeout(() => {
+      fetchPersonalAssets();
+      fetchMultisigAssets();
+    }, 1000);
+  };
+
+  // Handle sorting
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
-      setSortDirection('desc'); // Default to descending order
+      setSortDirection('desc'); // Default to descending
     }
   };
 
-  // Filter and sort assets based on search and sort settings
+  // Filter and sort assets
   const filterAndSortAssets = (assets: Asset[]) => {
     // First filter
     const filtered = assets.filter(
@@ -349,9 +461,9 @@ export default function PortfolioPage() {
     });
   };
 
-  const filteredAssets = filterAndSortAssets(assets);
+  const filteredAssets = filterAndSortAssets(currentAssets);
 
-  // Show loading skeletons or empty state when not mounted
+  // Show nothing when not mounted (to prevent hydration issues)
   if (!mounted) {
     return null;
   }
@@ -364,7 +476,7 @@ export default function PortfolioPage() {
             Portfolio
           </Typography>
           <Typography color="text.secondary" variant="body1">
-            Manage your assets across your personal wallet and multi-signature wallets.
+            Manage your assets, transfers, and transactions across all your wallets
           </Typography>
         </Box>
 
@@ -414,24 +526,22 @@ export default function PortfolioPage() {
                 sx={{ mb: 3 }}
               >
                 <AlertTitle>Success</AlertTitle>
-                Your deposit request has been processed successfully
+                {successMessage}
               </Alert>
             )}
             
-            {/* Wallet overview */}
-            {loadingWallet ? (
-              <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress />
-              </Box>
-            ) : errorWallet ? (
-              <Alert severity="error" sx={{ mb: 4 }}>
-                {errorWallet}
-              </Alert>
-            ) : walletData ? (
-              <WalletOverview onDeposit={handleDepositOpen} wallet={walletData} />
-            ) : null}
+            {/* Quick transfer card */}
+            <QuickTransferCard
+              availableTokens={availableTokensForTransfer}  // Updated prop
+              isLoadingWallets={loadingRelatedWallets}
+              onTransfer={handleTransfer}
+              relatedWallets={relatedMultisigWallets}
+              totalBalance={totalBalance}
+              userWalletAddress={address || ''}
+              userWalletName={walletType === 'personal' ? 'My Personal Wallet' : 'My Multi-Signature Wallet'}
+            />
 
-            {/* Tabs */}
+            {/* Wallet type tabs */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
               <Tabs 
                 TabIndicatorProps={{
@@ -494,7 +604,7 @@ export default function PortfolioPage() {
               
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <IconButton 
-                  disabled={refreshing || loadingAssets || loadingTransactions || loadingWallet}
+                  disabled={refreshing || loadingAssets || loadingTransactions}
                   onClick={handleRefresh}
                   size="small"
                   sx={{ 
@@ -516,7 +626,7 @@ export default function PortfolioPage() {
                 
                 <Button 
                   color="primary" 
-                  onClick={handleDepositOpen}
+                  onClick={() => handleDepositOpen()}
                   startIcon={<AddIcon />}
                   sx={{ borderRadius: 2 }}
                   variant="contained"
@@ -531,16 +641,15 @@ export default function PortfolioPage() {
               <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress />
               </Box>
-            ) : errorAssets ? (
-              <Alert severity="error" sx={{ mb: 4 }}>
-                {errorAssets}
-              </Alert>
             ) : (
               <AssetTable 
                 assets={filteredAssets} 
+                onDeposit={handlePersonalDeposit} 
                 onSort={handleSort} 
-                sortColumn={sortColumn} 
-                sortDirection={sortDirection} 
+                onWithdraw={handleMultisigWithdraw}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                walletType={walletType}
               />
             )}
 
@@ -549,10 +658,6 @@ export default function PortfolioPage() {
               <Box sx={{ mb: 4, p: 3, display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress />
               </Box>
-            ) : errorTransactions ? (
-              <Alert severity="error" sx={{ mb: 4 }}>
-                {errorTransactions}
-              </Alert>
             ) : (
               <TransactionHistory transactions={transactions} />
             )}
@@ -562,7 +667,10 @@ export default function PortfolioPage() {
               onClose={handleDepositClose} 
               onSubmit={handleDepositSubmit} 
               open={depositOpen} 
-              walletType={tabValue === 0 ? 'personal' : 'multisig'} 
+              preSelectedAmount={selectedAsset?.balance.toString()}
+              preSelectedToken={selectedAsset?.symbol}
+              tokenBalances={tokenBalancesMap}
+              walletType={walletType}
             />
           </>
         )}
