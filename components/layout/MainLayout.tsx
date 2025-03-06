@@ -5,7 +5,7 @@ import { Alert, Box, CircularProgress, Snackbar, useMediaQuery } from '@mui/mate
 import { useTheme } from '@mui/material/styles';
 import { useAccount } from 'wagmi';
 import Header from './Header';
-import MobileHeader from './MobileHeader'; // Import the new mobile header
+import MobileHeader from './MobileHeader';
 import Sidebar from './Sidebar';
 import ConnectWalletPrompt from '../common/ConnectWalletPrompt';
 import CreateAgentPrompt from '../common/CreateAgentPrompt';
@@ -50,14 +50,18 @@ export default function MainLayout({
         setLoading(true);
         const response = await apiClient.checkAgentStatus(address);
         
+        // Gracefully handle errors - don't throw if error exists,
+        // instead log and set hasAgent to false (default safe state)
         if (response.error) {
-          throw new Error(response.error);
+          console.warn("Error checking agent status, defaulting to no agent:", response.error);
+          setHasAgent(false);
+          setError("Unable to verify agent status. Some features may be unavailable.");
+        } else {
+          setHasAgent(response.data?.has_agent || false);
+          console.log("MainLayout: Agent status check result:", response.data?.has_agent);
         }
-        
-        setHasAgent(response.data?.has_agent || false);
-        console.log("MainLayout: Agent status check result:", response.data?.has_agent);
       } catch (err) {
-        console.error('Error checking agent status:', err);
+        console.error('Uncaught error checking agent status:', err);
         setError('Unable to check agent status. Please try again later.');
         setHasAgent(false);
       } finally {
@@ -77,13 +81,15 @@ export default function MainLayout({
       const response = await apiClient.createAgent(address);
       
       if (response.error) {
-        throw new Error(response.error);
+        console.warn("Error creating agent:", response.error);
+        setError('Failed to create your AI agent. Please try again.');
+        return false;
       }
       
       setHasAgent(true);
       return true;
     } catch (err) {
-      console.error('Error creating agent:', err);
+      console.error('Uncaught error creating agent:', err);
       setError('Failed to create your AI agent. Please try again.');
       return false;
     } finally {
