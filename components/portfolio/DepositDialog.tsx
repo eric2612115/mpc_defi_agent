@@ -1,6 +1,7 @@
 // components/portfolio/DepositDialog.tsx
 import React, { useEffect, useState } from 'react';
 import {
+  alpha,
   Box, Button, Dialog, DialogActions,
   DialogContent, DialogTitle, FormControl, IconButton, InputAdornment,
   InputLabel, MenuItem, Select, SelectChangeEvent,
@@ -202,7 +203,7 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
               }}
             >
               <Typography color="text.secondary" variant="caption">
-                <strong>Note:</strong> Funds deposited to a multi-signature wallet require multiple signatures to withdraw. Make sure you understand the wallet's security policy before proceeding.
+                <strong>Note:</strong> Funds deposited to a multi-signature wallet require multiple signatures to withdraw. Make sure you understand the wallet&apos;s security policy before proceeding.
               </Typography>
             </Box>
           )}

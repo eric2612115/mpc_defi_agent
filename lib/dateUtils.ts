@@ -4,7 +4,7 @@
  * @param timestamp 输入时间戳，可以是字符串、数字、Date对象或undefined
  * @returns ISO格式的日期字符串
  */
-export function formatTimestamp(timestamp: any): string {
+export function formatTimestamp(timestamp?: string | number | Date | null): string {
   // 如果未提供时间戳，使用当前时间
   if (timestamp === undefined || timestamp === null) {
     return new Date().toISOString();
@@ -18,7 +18,7 @@ export function formatTimestamp(timestamp: any): string {
   // 尝试转换为Date对象
   try {
     return new Date(timestamp).toISOString();
-  } catch (e) {
+  } catch (_error) {
     console.warn("Invalid timestamp format, using current time instead:", timestamp);
     return new Date().toISOString();
   }
@@ -30,7 +30,7 @@ export function formatTimestamp(timestamp: any): string {
    * @param timestamp 输入时间戳，可以是字符串、数字、Date对象或undefined
    * @returns Date对象
    */
-export function parseTimestamp(timestamp: any): Date {
+export function parseTimestamp(timestamp?: string | number | Date | null): Date {
   // 如果未提供时间戳，使用当前时间
   if (timestamp === undefined || timestamp === null) {
     return new Date();
@@ -49,7 +49,7 @@ export function parseTimestamp(timestamp: any): Date {
       throw new Error('Invalid date');
     }
     return date;
-  } catch (e) {
+  } catch (_error) {
     console.warn("Invalid timestamp format, using current time instead:", timestamp);
     return new Date();
   }
@@ -63,7 +63,7 @@ export function parseTimestamp(timestamp: any): Date {
    * @returns 格式化的日期字符串
    */
 export function formatDateTime(
-  timestamp: any, 
+  timestamp?: string | number | Date | null, 
   options: Intl.DateTimeFormatOptions = { 
     hour: '2-digit', 
     minute: '2-digit' 
@@ -82,7 +82,7 @@ function isValidISOString(str: string): boolean {
     const d = new Date(str);
     // 检查是否为有效的日期且包含T (ISO格式的标志)
     return !isNaN(d.getTime()) && str.includes('T');
-  } catch (e) {
+  } catch (_error) {
     return false;
   }
 }
@@ -90,7 +90,7 @@ function isValidISOString(str: string): boolean {
 /**
    * 获取相对时间描述（例如，"5分钟前"）
    */
-export function getRelativeTimeString(timestamp: any): string {
+export function getRelativeTimeString(timestamp: string | number | Date | null): string {
   const date = parseTimestamp(timestamp);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

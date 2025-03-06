@@ -39,8 +39,8 @@ const eslintConfig = [
         memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
       }],
     },
-    files: ['app/**/*.{js,jsx,ts,tsx}', 'components/**/*.{js,jsx,ts,tsx}', 'lib/**/*.{js,jsx,ts,tsx}', 'mockData/**/*.{js,jsx,ts,tsx}', 'models/**/*.{js,jsx,ts,tsx}'],
-    ignores: ['node_modules/**'],
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['node_modules/**', 'public/**', 'styles/**'],
   },
 ];
 
