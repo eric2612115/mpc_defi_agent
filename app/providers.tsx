@@ -8,13 +8,9 @@ import {
 import { createConfig, http, WagmiProvider } from 'wagmi';
 import { arbitrum, base, mainnet, optimism, polygon, sepolia } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { connectorsForWallets, darkTheme, getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 // Configure wallets
-const { wallets } = getDefaultWallets({
-  appName: 'AI Trading Assistant',
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '44b9e059520fc796204a1c3d8e873da7',
-});
 
 const connectors = connectorsForWallets(
   [
@@ -24,7 +20,7 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: 'My RainbowKit App',
+    appName: 'Gun.AI{Safe}',
     projectId: 'YOUR_PROJECT_ID',
   }
 );
