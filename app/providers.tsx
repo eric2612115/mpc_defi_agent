@@ -6,7 +6,7 @@ import {
   trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { createConfig, http, WagmiProvider } from 'wagmi';
-import { arbitrum, base, mainnet, optimism, polygon, sepolia } from 'wagmi/chains';
+import { arbitrum, base, mainnet, optimism, polygon, sepolia, sonic } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -32,6 +32,7 @@ const config = createConfig({
     polygon,
     optimism,
     arbitrum,
+    sonic,
     base,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [sepolia] : []),
   ],
@@ -40,6 +41,7 @@ const config = createConfig({
     [polygon.id]: http(),
     [optimism.id]: http(),
     [arbitrum.id]: http(),
+    [sonic.id]: http(),
     [base.id]: http(),
     [sepolia.id]: http(), 
   },

@@ -49,7 +49,7 @@ const mockInsights = [
     _id: 'insight-1',
     content: 'Bitcoin surpasses $70,000 for the first time in 2025, marking a new all-time high.',
     publishedAt: new Date().toISOString(),
-    importance: 'high' as 'high',
+    importance: 'high',
     relatedTokens: ['BTC', 'Bitcoin'],
     source: 'CryptoNews'
   },
@@ -57,7 +57,7 @@ const mockInsights = [
     _id: 'insight-2',
     content: 'Ethereum continues to face resistance at $2,200 level despite network upgrade announcement.',
     publishedAt: new Date().toISOString(),
-    importance: 'medium' as 'medium',
+    importance: 'medium',
     relatedTokens: ['ETH', 'Ethereum'],
     source: 'DeFi Daily'
   }
@@ -774,7 +774,7 @@ const DailyAnalysisPage = () => {
                         <TrendingUpIcon color="success" fontSize="small" sx={{ mt: 0.5 }} />
                         <Box>
                           <Typography fontWeight={500} variant="body2">
-                            Coinbase's Base layer-2 solution sees increased adoption with the launch of new DeFi protocols.
+                            Coinbase&apos;s Base layer-2 solution sees increased adoption with the launch of new DeFi protocols.
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                             <Chip 

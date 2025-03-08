@@ -30,6 +30,7 @@ export default function MainLayout({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
   // Check if already mounted on client
   const [mounted, setMounted] = useState(false);
@@ -48,6 +49,7 @@ export default function MainLayout({
     const checkAgentStatus = async () => {
       try {
         setLoading(true);
+        console.log("Checking agent status for:", address);
         const response = await apiClient.checkAgentStatus(address);
         
         // Gracefully handle errors - don't throw if error exists,
@@ -57,8 +59,9 @@ export default function MainLayout({
           setHasAgent(false);
           setError("Unable to verify agent status. Some features may be unavailable.");
         } else {
-          setHasAgent(response.data?.has_agent || false);
-          console.log("MainLayout: Agent status check result:", response.data?.has_agent);
+          const hasAgentValue = response.data?.has_agent || false;
+          console.log("MainLayout: Agent status check result:", hasAgentValue);
+          setHasAgent(hasAgentValue);
         }
       } catch (err) {
         console.error('Uncaught error checking agent status:', err);
@@ -77,15 +80,26 @@ export default function MainLayout({
     if (!address) return false;
     
     try {
-      setLoading(true);
-      const response = await apiClient.createAgent(address);
+      setIsCreatingAgent(true);
+      console.log("Creating agent for wallet:", address);
       
-      if (response.error) {
-        console.warn("Error creating agent:", response.error);
+      const response = await fetch('/api/create-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wallet_address: address }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.warn("Error creating agent:", data.error);
         setError('Failed to create your AI agent. Please try again.');
         return false;
       }
       
+      console.log("Agent creation successful:", data);
       setHasAgent(true);
       return true;
     } catch (err) {
@@ -93,7 +107,7 @@ export default function MainLayout({
       setError('Failed to create your AI agent. Please try again.');
       return false;
     } finally {
-      setLoading(false);
+      setIsCreatingAgent(false);
     }
   };
 
@@ -102,7 +116,7 @@ export default function MainLayout({
     setError(null);
   };
 
-  // Show loading
+  // Show loading spinner when checking agent status
   if (!mounted || loading) {
     return (
       <Box 
@@ -124,22 +138,31 @@ export default function MainLayout({
   if (requireWallet && !isConnected) {
     return (
       <>
-        {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
+        {/* Pass correct props to Header for wallet connection screen */}
+        {isMobile ? 
+          <MobileHeader hasAgent={false} isWalletConnected={false} /> : 
+          <Header hasAgent={false} isWalletConnected={false} />
+        }
         <ConnectWalletPrompt />
       </>
     );
   }
 
-  // If agent is required but not created, show prompt
-  if (requireAgent && !hasAgent && isConnected) {
+  // If agent is required but not created or is being created, show agent prompt
+  if (requireAgent && (!hasAgent || isCreatingAgent) && isConnected) {
     return (
       <>
-        {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
-        <CreateAgentPrompt onCreateAgent={handleCreateAgent} />
+        {/* Pass correct props to Header for agent creation screen */}
+        {isMobile ? 
+          <MobileHeader hasAgent={false} isWalletConnected={true} /> : 
+          <Header hasAgent={false} isWalletConnected={true} />
+        }
+        <CreateAgentPrompt onCreateAgent={handleCreateAgent} isCreating={isCreatingAgent} />
       </>
     );
   }
 
+  // If we have an agent or it's not required, show the main layout
   return (
     <Box
       sx={{ 
@@ -150,7 +173,11 @@ export default function MainLayout({
       }}
     >
       {/* Top navigation - different component for mobile vs desktop */}
-      {isMobile ? <MobileHeader hasAgent={hasAgent ?? undefined} /> : <Header hasAgent={hasAgent ?? undefined} />}
+      {/* Pass correct props to Header for main app screen */}
+      {isMobile ? 
+        <MobileHeader hasAgent={true} isWalletConnected={true} /> : 
+        <Header hasAgent={true} isWalletConnected={true} />
+      }
       
       {/* Main content area */}
       <Box
@@ -162,7 +189,7 @@ export default function MainLayout({
       >
         {/* Left sidebar (only show on desktop and when enabled) */}
         {showSidebar && !isMobile && (
-          <Sidebar />
+          <Sidebar hasAgent={true} />
         )}
         
         {/* Main content */}

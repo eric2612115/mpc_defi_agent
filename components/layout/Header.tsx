@@ -24,7 +24,7 @@ import Sidebar from './Sidebar';
 // Define the TransactionNotice type to match what EnhancedTransactionTicker expects
 interface TransactionNotice {
   id: string;
-  type: "buy" | "swap" | "sell"; // This is the union type that caused the error
+  type: "buy" | "swap" | "sell";
   user: string;
   token: string;
   amount: string;
@@ -36,7 +36,7 @@ interface TransactionNotice {
 const mockNotices: TransactionNotice[] = [
   {
     id: '1',
-    type: 'buy', // Now explicitly typed as one of the allowed values
+    type: 'buy',
     user: '0x71C7...76F',
     token: 'ETH',
     amount: '2.54',
@@ -45,7 +45,7 @@ const mockNotices: TransactionNotice[] = [
   },
   {
     id: '2',
-    type: 'swap', // Now explicitly typed as one of the allowed values
+    type: 'swap',
     user: '0x8a25...48D',
     token: 'USDC',
     amount: '5,000',
@@ -54,7 +54,7 @@ const mockNotices: TransactionNotice[] = [
   },
   {
     id: '3',
-    type: 'sell', // Now explicitly typed as one of the allowed values
+    type: 'sell',
     user: '0x4321...65',
     token: 'LINK',
     amount: '150',
@@ -65,10 +65,11 @@ const mockNotices: TransactionNotice[] = [
 
 interface HeaderProps {
   hasAgent?: boolean;
+  isWalletConnected?: boolean;
   sidebarWidth?: number;
 }
 
-export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderProps) {
+export default function Header({ hasAgent = false, isWalletConnected = false, sidebarWidth = 240 }: HeaderProps) {
   const theme = useTheme();
   const [mounted, setMounted] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -99,6 +100,10 @@ export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderP
     setDrawerOpen(!drawerOpen);
   };
 
+  // Check if we should show tickers - only when wallet is connected AND agent exists
+  // This is the key fix - now we check both conditions
+  const showTickers = isWalletConnected && hasAgent;
+
   return (
     <>
       {/* Only show header on mobile */}
@@ -107,7 +112,7 @@ export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderP
           elevation={0} 
           position="fixed"
           sx={{ 
-            zIndex: 1200, // Lower than Sidebar z-index
+            zIndex: 1200,
             bgcolor: scrolled ? alpha('#F8EDD7', 0.95) : 'transparent',
             borderBottom: scrolled ? `1px solid ${theme.palette.divider}` : 'none',
             transition: 'background-color 0.3s ease, border-bottom 0.3s ease',
@@ -138,47 +143,51 @@ export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderP
               </Typography>
             </Box>
 
-            {/* Right side */}
+            {/* Right side - only show notifications when wallet is connected */}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton color="inherit">
-                <Badge badgeContent={3} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
+              {isWalletConnected && (
+                <IconButton color="inherit">
+                  <Badge badgeContent={3} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+              )}
             </Box>
           </Toolbar>
 
-          {/* Transaction ticker for mobile */}
-          <Box
-            sx={{
-              width: '100%',
-              bgcolor: alpha(theme.palette.background.paper, 0.8),
-              borderTop: `1px solid ${theme.palette.divider}`,
-              py: 1,
-              px: 2
-            }}
-          >
-            <EnhancedTransactionTicker 
-              autoPlay={true}
-              interval={5000}
-              notices={mockNotices}
-              position="header"
-            />
-          </Box>
+          {/* Transaction ticker for mobile - only when showTickers is true */}
+          {showTickers && mounted && (
+            <Box
+              sx={{
+                width: '100%',
+                bgcolor: alpha(theme.palette.background.paper, 0.8),
+                borderTop: `1px solid ${theme.palette.divider}`,
+                py: 1,
+                px: 2
+              }}
+            >
+              <EnhancedTransactionTicker 
+                autoPlay={true}
+                interval={5000}
+                notices={mockNotices}
+                position="header"
+              />
+            </Box>
+          )}
         </AppBar>
       )}
 
-      {/* Desktop version - only show transaction ticker (floating at top) */}
-      {!isMobile && mounted && (
+      {/* Desktop version - only show transaction ticker when showTickers is true */}
+      {!isMobile && mounted && showTickers && (
         <Box
           sx={{
             position: 'fixed',
             top: scrolled ? 0 : 16,
             left: 0,
             right: 0,
-            zIndex: 1100, // Lower than Sidebar z-index
+            zIndex: 1100,
             px: 2,
-            ml: `${sidebarWidth}px`, // Account for Sidebar width
+            ml: `${sidebarWidth}px`,
             width: `calc(100% - ${sidebarWidth}px)`,
             transition: 'top 0.3s ease',
             display: 'flex',
@@ -205,7 +214,7 @@ export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderP
             '& .MuiDrawer-paper': {
               width: 280,
               bgcolor: theme.palette.background.default,
-              zIndex: 1300, // Ensure sidebar is above other elements
+              zIndex: 1300,
             },
           }}
         >
@@ -224,8 +233,16 @@ export default function Header({ hasAgent = false, sidebarWidth = 240 }: HeaderP
             </IconButton>
           </Box>
           
-          {/* Import Sidebar component */}
-          <Sidebar />
+          {/* Import Sidebar component - only show full content if hasAgent */}
+          {isWalletConnected ? (
+            <Sidebar hasAgent={hasAgent} />
+          ) : (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.primary">
+                Please connect your wallet to see options.
+              </Typography>
+            </Box>
+          )}
         </Drawer>
       )}
     </>

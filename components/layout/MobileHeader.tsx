@@ -1,11 +1,11 @@
-// components/layout/Header.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   alpha,
   AppBar,
   Badge,
   Box,
+  Drawer,
   IconButton,
   Menu,
   MenuItem,
@@ -15,27 +15,94 @@ import {
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
-  AccountCircle as AccountIcon,
-  SmartToy as SmartToyIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import EnhancedTransactionTicker from '../common/EnhancedTransactionTicker';
+import Sidebar from './Sidebar';
 
-interface HeaderProps {
-  hasAgent?: boolean;
+// Define the TransactionNotice type
+interface TransactionNotice {
+  id: string;
+  type: "buy" | "swap" | "sell";
+  user: string;
+  token: string;
+  amount: string;
+  value: string;
+  timestamp: string;
 }
 
-interface MobileHeaderProps {
-    hasAgent?: boolean | null;
+// Correctly typed mock notices
+const mockNotices: TransactionNotice[] = [
+  {
+    id: '1',
+    type: 'buy',
+    user: '0x71C7...76F',
+    token: 'ETH',
+    amount: '2.54',
+    value: '$8,791.23',
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: '2',
+    type: 'swap',
+    user: '0x8a25...48D',
+    token: 'USDC',
+    amount: '5,000',
+    value: '1.42 ETH',
+    timestamp: new Date(Date.now() - 2 * 60000).toISOString()
+  },
+  {
+    id: '3',
+    type: 'sell',
+    user: '0x4321...65',
+    token: 'LINK',
+    amount: '150',
+    value: '$2,250.00',
+    timestamp: new Date(Date.now() - 5 * 60000).toISOString()
   }
+];
 
-export default function Header({ hasAgent = false }: HeaderProps) {
+interface MobileHeaderProps {
+  hasAgent?: boolean;
+  isWalletConnected?: boolean;
+}
+
+export default function MobileHeader({ hasAgent = false, isWalletConnected = false }: MobileHeaderProps) {
   const theme = useTheme();
-  const { isConnected } = useAccount();
-  const [notificationAnchor, setNotificationAnchor] = useState(null);
-  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [notificationAnchor, setNotificationAnchor] = useState<HTMLElement | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  const handleNotificationOpen = (event: any) => {
+  // Only render on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Listen for scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      setScrolled(offset > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Check if we should show tickers - only when wallet is connected AND agent exists
+  const showTickers = isWalletConnected && hasAgent;
+
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  const handleNotificationOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationAnchor(event.currentTarget);
   };
 
@@ -43,171 +110,160 @@ export default function Header({ hasAgent = false }: HeaderProps) {
     setNotificationAnchor(null);
   };
 
-  const handleProfileOpen = (event: any) => {
-    setProfileAnchor(event.currentTarget);
-  };
-
-  const handleProfileClose = () => {
-    setProfileAnchor(null);
-  };
+  // Don't render content until mounted to prevent hydration issues
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <AppBar 
-      elevation={0} 
-      position="fixed"
-      sx={{ 
-        zIndex: theme.zIndex.drawer + 1,
-        bgcolor: theme.palette.background.paper,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        display: { xs: 'none', md: 'block' } // Only visible on desktop
-      }}
-    >
-      <Toolbar>
-        {/* Logo and title */}
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box
-            sx={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              mr: 2
-            }}
-          >
-            <SmartToyIcon />
-          </Box>
-          <Typography fontWeight={600} variant="h6">
-            AI Trading Assistant
-          </Typography>
-        </Box>
+    <>
+      <AppBar 
+        elevation={0} 
+        position="fixed"
+        sx={{ 
+          zIndex: 1200,
+          bgcolor: scrolled ? alpha('#F8EDD7', 0.95) : 'transparent',
+          borderBottom: scrolled ? `1px solid ${theme.palette.divider}` : 'none',
+          transition: 'background-color 0.3s ease, border-bottom 0.3s ease',
+          boxShadow: scrolled ? theme.customShadows?.light : 'none',
+        }}
+      >
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* Left side */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 1 }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-        {/* Right-side actions */}
-        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-          {/* Only show these if connected */}
-          {isConnected && (
-            <>
+            <Typography
+              component="div"
+              sx={{ 
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+              }}
+              variant="h6"
+            >
+              AI Trading Assistant
+            </Typography>
+          </Box>
+
+          {/* Right side - only show notifications when wallet is connected */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {isWalletConnected && (
               <IconButton 
+                color="inherit"
                 onClick={handleNotificationOpen}
-                size="large"
-                sx={{ ml: 2 }}
               >
                 <Badge badgeContent={3} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
-
-              <IconButton
-                onClick={handleProfileOpen}
-                size="large"
-                sx={{ ml: 2 }}
-              >
-                <AccountIcon />
-              </IconButton>
-
-              {/* Notification Menu */}
-              <Menu
-                anchorEl={notificationAnchor}
-                id="notification-menu"
-                onClose={handleNotificationClose}
-                open={Boolean(notificationAnchor)}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    width: 320,
-                    overflow: 'visible',
-                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-                    mt: 1.5,
-                    '& .MuiMenuItem-root': {
-                      px: 2,
-                      py: 1.5,
-                    },
-                  },
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              >
-                <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                  <Typography fontWeight={600} variant="subtitle1">
-                    Notifications
-                  </Typography>
-                </Box>
-                <MenuItem onClick={handleNotificationClose}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2">Portfolio Alert</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      ETH price increased by 5% in the last 24 hours
-                    </Typography>
-                  </Box>
-                </MenuItem>
-                <MenuItem onClick={handleNotificationClose}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2">New Market Analysis</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      Daily market analysis is now available
-                    </Typography>
-                  </Box>
-                </MenuItem>
-                <MenuItem onClick={handleNotificationClose}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle2">Transaction Completed</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      Your recent swap transaction has been confirmed
-                    </Typography>
-                  </Box>
-                </MenuItem>
-                <Box sx={{ p: 1.5, borderTop: `1px solid ${theme.palette.divider}`, textAlign: 'center' }}>
-                  <Typography 
-                    component="span" 
-                    color="primary" 
-                    sx={{ cursor: 'pointer', fontWeight: 500 }}
-                    variant="body2"
-                  >
-                    View All Notifications
-                  </Typography>
-                </Box>
-              </Menu>
-
-              {/* Profile Menu */}
-              <Menu
-                anchorEl={profileAnchor}
-                id="profile-menu"
-                onClose={handleProfileClose}
-                open={Boolean(profileAnchor)}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    overflow: 'visible',
-                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-                    mt: 1.5,
-                    width: 200,
-                  },
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              >
-                <MenuItem onClick={handleProfileClose}>
-                  Profile Settings
-                </MenuItem>
-                <MenuItem onClick={handleProfileClose}>
-                  Portfolio
-                </MenuItem>
-                <MenuItem onClick={handleProfileClose}>
-                  Account Security
-                </MenuItem>
-              </Menu>
-            </>
-          )}
-
-          {/* Wallet Connect Button */}
-          <Box sx={{ ml: 2 }}>
-            <ConnectButton />
+            )}
           </Box>
+        </Toolbar>
+
+        {/* Transaction ticker for mobile - only when showTickers is true */}
+        {showTickers && (
+          <Box
+            sx={{
+              width: '100%',
+              bgcolor: alpha(theme.palette.background.paper, 0.8),
+              borderTop: `1px solid ${theme.palette.divider}`,
+              py: 1,
+              px: 2
+            }}
+          >
+            <EnhancedTransactionTicker 
+              autoPlay={true}
+              interval={5000}
+              notices={mockNotices}
+              position="header"
+            />
+          </Box>
+        )}
+      </AppBar>
+
+      {/* Notifications Menu */}
+      <Menu
+        anchorEl={notificationAnchor}
+        open={Boolean(notificationAnchor)}
+        onClose={handleNotificationClose}
+        PaperProps={{
+          sx: { width: 280, mt: 1.5 }
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid #E6D6A9' }}>
+          <Typography fontWeight={600} variant="subtitle1">Notifications</Typography>
         </Box>
-      </Toolbar>
-    </AppBar>
+        <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
+          <Box>
+            <Typography fontWeight={500} variant="body2">AI Agent Created</Typography>
+            <Typography color="text.secondary" variant="caption">Your AI trading assistant is ready</Typography>
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
+          <Box>
+            <Typography fontWeight={500} variant="body2">New Market Analysis</Typography>
+            <Typography color="text.secondary" variant="caption">Check the latest USDC market analysis</Typography>
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleNotificationClose} sx={{ py: 1.5 }}>
+          <Box>
+            <Typography fontWeight={500} variant="body2">Transaction Successful</Typography>
+            <Typography color="text.secondary" variant="caption">Your transaction was completed</Typography>
+          </Box>
+        </MenuItem>
+        <Box sx={{ p: 1, borderTop: '1px solid #E6D6A9', textAlign: 'center' }}>
+          <Typography color="primary" variant="caption">View All Notifications</Typography>
+        </Box>
+      </Menu>
+
+      {/* Mobile sidebar drawer */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 280,
+            bgcolor: theme.palette.background.default,
+            zIndex: 1300,
+          },
+        }}
+      >
+        {/* Drawer top - close button */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            p: 1,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <IconButton onClick={handleDrawerToggle}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        {/* Import Sidebar component - only show full content if hasAgent */}
+        {isWalletConnected ? (
+          <Sidebar hasAgent={hasAgent} />
+        ) : (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.primary">
+              Please connect your wallet to see options.
+            </Typography>
+          </Box>
+        )}
+      </Drawer>
+    </>
   );
 }

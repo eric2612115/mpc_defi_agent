@@ -1,4 +1,4 @@
-// /app/api/create-agent/route.ts - 創建這個新文件
+// app/api/create-agent/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -13,15 +13,16 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // 呼叫後端 API
+    console.log(`Creating agent for wallet: ${wallet_address}`);
+    
+    // Call backend API
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
     const response = await fetch(`${backendUrl}/api/create-agent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      //body should like{"wallet_address": "string"}
-      body: JSON.stringify(body),
+      body: JSON.stringify({ wallet_address }),
     });
     
     if (!response.ok) {
@@ -38,11 +39,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating agent:', error);
     
-    // 開發模式回傳模擬數據
-    console.warn('⚠️ Returning mock agent creation response for development');
-    return NextResponse.json({ 
-      success: true,
-      message: 'Agent created successfully (mock)' 
-    });
+    // For development mode, return a successful response
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Returning mock agent creation response for development');
+      return NextResponse.json({ 
+        success: true,
+        agent_id: `agent-${Math.random().toString(36).substring(2, 9)}`,
+        message: 'Agent created successfully (mock)' 
+      });
+    }
+    
+    return NextResponse.json(
+      { error: 'Internal server error creating agent' },
+      { status: 500 }
+    );
   }
 }

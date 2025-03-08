@@ -1,6 +1,6 @@
 // components/common/CreateAgentPrompt.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   alpha, 
   Box, 
@@ -18,7 +18,8 @@ import {
   StepLabel,
   Stepper,
   Typography,
-  useTheme
+  useTheme,
+  Alert
 } from '@mui/material';
 import { 
   Assignment as AssignmentIcon, 
@@ -32,13 +33,24 @@ import {
 
 interface CreateAgentPromptProps {
   onCreateAgent: () => Promise<boolean>;
+  isCreating?: boolean;
 }
 
-export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptProps) {
+export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }: CreateAgentPromptProps) {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [agentAddress, setAgentAddress] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [creationComplete, setCreationComplete] = useState(false);
+
+  // When isCreating is set from the parent, update our local state
+  useEffect(() => {
+    if (isCreating && !loading && !creationComplete) {
+      setActiveStep(1);  // Move to agent creation step
+      setLoading(true);  // Show loading state
+    }
+  }, [isCreating, loading, creationComplete]);
 
   // Define steps
   const steps = [
@@ -96,16 +108,27 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
   };
 
   const handleCreateAgent = async () => {
+    if (loading || isCreating) return;
+    
     setLoading(true);
+    setError(null);
+    
     try {
       const success = await onCreateAgent();
+      
       if (success) {
-        // Generate a fake MPC address
+        // Generate a fake MPC address for demo purposes
         const randomAddr = `0x${Array.from({length: 40}, () => 
           '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')}`;
         setAgentAddress(randomAddr);
+        setCreationComplete(true);
         handleNext();
+      } else {
+        setError("Failed to create AI agent. Please try again.");
       }
+    } catch (err) {
+      console.error("Error in creating agent:", err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -144,7 +167,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                   borderRadius: 2,
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    boxShadow: theme.customShadows.medium,
+                    boxShadow: theme.customShadows?.medium,
                     borderColor: alpha(theme.palette.primary.main, 0.5),
                     transform: 'translateY(-2px)'
                   }
@@ -175,7 +198,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                 py: 1,
                 borderRadius: 2,
                 minWidth: 200,
-                boxShadow: theme.customShadows.button
+                boxShadow: theme.customShadows?.button
               }}
               variant="contained"
             >
@@ -199,71 +222,103 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
             </Typography>
           </Box>
 
-          <Box
-            sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, 
-              gap: 3,
-              mb: 4
-            }}
-          >
-            {aiFeatures.map((feature, index) => (
-              <Card
-                elevation={0}
-                key={index}
-                sx={{ 
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                  borderRadius: 2,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    boxShadow: theme.customShadows.medium,
-                    borderColor: alpha(theme.palette.primary.main, 0.5),
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CheckIcon color="success" fontSize="small" sx={{ mr: 1 }} />
-                    <Typography fontWeight={600} variant="subtitle1">
-                      {feature.name}
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ mb: 3 }}
+              onClose={() => setError(null)}
+            >
+              {error}
+            </Alert>
+          )}
+
+          {/* Show only when not loading */}
+          {!loading && !isCreating && (
+            <Box
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, 
+                gap: 3,
+                mb: 4
+              }}
+            >
+              {aiFeatures.map((feature, index) => (
+                <Card
+                  elevation={0}
+                  key={index}
+                  sx={{ 
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: theme.customShadows?.medium,
+                      borderColor: alpha(theme.palette.primary.main, 0.5),
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <CheckIcon color="success" fontSize="small" sx={{ mr: 1 }} />
+                      <Typography fontWeight={600} variant="subtitle1">
+                        {feature.name}
+                      </Typography>
+                    </Box>
+                    <Typography color="text.secondary" variant="body2">
+                      {feature.description}
                     </Typography>
-                  </Box>
-                  <Typography color="text.secondary" variant="body2">
-                    {feature.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+
+          {/* Loading state */}
+          {(loading || isCreating) && (
+            <Box sx={{ textAlign: 'center', p: 4, mb: 4 }}>
+              <CircularProgress size={60} sx={{ mb: 3 }} />
+              <Typography variant="h6" gutterBottom>
+                Creating Your AI Agent...
+              </Typography>
+              <Typography color="text.secondary" variant="body2">
+                We&apos;re setting up your personal AI Trading Assistant and secure MPC wallet.
+                This may take a moment.
+              </Typography>
+            </Box>
+          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              onClick={handleBack}
-              sx={{ 
-                px: 3,
-                borderRadius: 2,
-              }}
-              variant="outlined"
-            >
-              Back
-            </Button>
-            <Button
-              color="primary"
-              disabled={loading}
-              onClick={handleCreateAgent}
-              startIcon={loading ? <CircularProgress size={20} /> : <SmartToyIcon />}
-              sx={{ 
-                px: 4,
-                py: 1,
-                borderRadius: 2,
-                minWidth: 200,
-                boxShadow: theme.customShadows.button
-              }}
-              variant="contained"
-            >
-              {loading ? 'Creating Agent...' : 'Create AI Agent'}
-            </Button>
+            {!loading && !isCreating && (
+              <>
+                <Button
+                  onClick={handleBack}
+                  sx={{ 
+                    px: 3,
+                    borderRadius: 2,
+                  }}
+                  variant="outlined"
+                  disabled={loading || isCreating}
+                >
+                  Back
+                </Button>
+                <Button
+                  color="primary"
+                  disabled={loading || isCreating}
+                  onClick={handleCreateAgent}
+                  startIcon={loading ? <CircularProgress size={20} /> : <SmartToyIcon />}
+                  sx={{ 
+                    px: 4,
+                    py: 1,
+                    borderRadius: 2,
+                    minWidth: 200,
+                    boxShadow: theme.customShadows?.button
+                  }}
+                  variant="contained"
+                >
+                  {loading ? 'Creating Agent...' : 'Create AI Agent'}
+                </Button>
+              </>
+            )}
           </Box>
         </Box>
       );
@@ -351,7 +406,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
             <Button
               component="a"
-              href="/assets"
+              href="/portfolio"
               startIcon={<WalletIcon />}
               sx={{ 
                 px: 3,
@@ -371,7 +426,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
                 py: 1,
                 borderRadius: 2,
                 minWidth: 200,
-                boxShadow: theme.customShadows.button
+                boxShadow: theme.customShadows?.button
               }}
               variant="contained"
             >
@@ -410,7 +465,7 @@ export default function CreateAgentPrompt({ onCreateAgent }: CreateAgentPromptPr
             0.8
           )} 100%)`,
           backdropFilter: 'blur(10px)',
-          boxShadow: theme.customShadows.card,
+          boxShadow: theme.customShadows?.card,
         }}
       >
         <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 5 }}>

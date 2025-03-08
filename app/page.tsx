@@ -42,6 +42,8 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [hasAgent, setHasAgent] = useState(false);
+
 
   // Fix hydration issues
   useEffect(() => {
@@ -63,9 +65,18 @@ export default function HomePage() {
   }, [mounted, isConnected, address]);
 
   // WebSocket connection
+  // Update the useEffect to add hasAgent dependency and check
   useEffect(() => {
-    if (mounted && isConnected && address) {
+    if (mounted && isConnected && address && hasAgent) {
+      console.log('Connecting WebSocket - user connected and has agent');
       connectWebSocket();
+    } else {
+      console.log('Skipping WebSocket - conditions not met:', {
+        mounted, 
+        isConnected, 
+        hasAddress: !!address,
+        hasAgent
+      });
     }
 
     return () => {
@@ -73,123 +84,149 @@ export default function HomePage() {
         websocket.close();
       }
     };
-  }, [mounted, isConnected, address]);
+  }, [mounted, isConnected, address, hasAgent]);
 
-  const connectWebSocket = () => {
-    if (!address) return;
-  
-    const ws = new WebSocket(`${WS_URL}/${address}`);
-  
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      setWsConnected(true);
-      setErrorMessage(null);
-    };
+
+  const checkAgentStatus = async (userAddress: string) => {
+    if (!userAddress) return;
     
-    // Helper function to safely format timestamp
-    const formatTimestamp = (timestamp: any): string => {
-      // If timestamp is already a string, return it
-      if (typeof timestamp === 'string') {
-        return timestamp;
+    try {
+      const response = await apiClient.checkAgentStatus(userAddress);
+      if (response.data && response.data.has_agent) {
+        setHasAgent(true);
+      } else {
+        setHasAgent(false);
       }
-      
-      // If it's a number or valid date object
-      try {
-        return new Date(timestamp).toISOString();
-      } catch (e) {
-        // If conversion fails, return current time
-        console.warn("Invalid timestamp format, using current time instead:", timestamp);
-        return new Date().toISOString();
-      }
-    };
-  
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("Received WebSocket message:", data);
-  
-        // Use version with safe timestamp handling
-        const safeData = {
-          ...data,
-          timestamp: formatTimestamp(data.timestamp)
-        };
-  
-        // Handle different message types
-        switch (data.message_type) {
-        case 'status':
-          // Status messages (like "AI is preparing...")
-          setMessages(prev => [...prev, safeData]);
-          break;
-            
-        case 'error':
-          // Error messages
-          setErrorMessage(data.text);
-          setIsTyping(false);
-          setMessages(prev => [...prev, safeData]);
-          break;
-            
-        case 'thinking':
-          // AI thinking steps - show these as they come in
-          setMessages(prev => [...prev, safeData]);
-          break;
-            
-        case 'tool_call':
-          // Tool usage messages
-          setMessages(prev => [...prev, safeData]);
-          break;
-            
-        case 'transaction':
-          // Transaction related messages
-          setMessages(prev => [...prev, safeData]);
-          break;
-            
-        case 'normal':
-          // Regular messages from the AI
-          setIsTyping(false);
-            
-          // Check if we need to update the message with an action
-          const messageWithAction = {
-            ...safeData,
-            action: data.action ? {
-              ...data.action,
-            } : undefined
-          };
-            
-          setMessages(prev => [...prev, messageWithAction]);
-          break;
-            
-        default:
-          // Handle any other message types
-          setIsTyping(false);
-          setMessages(prev => [...prev, safeData]);
-        }
-      } catch (e) {
-        console.error("Error parsing WebSocket message:", e);
-        setErrorMessage("Error processing message from server");
-      }
-    };
-  
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      setWsConnected(false);
-      setTimeout(() => {
-        if (mounted && isConnected && address) {
-          connectWebSocket();
-        }
-      }, 3000);
-    };
-  
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setErrorMessage('Connection error. Trying to reconnect...');
-    };
-  
-    setWebsocket(ws);
+    } catch (error) {
+      console.error('Error checking agent status:', error);
+      setHasAgent(false);
+    }
   };
 
+  const connectWebSocket = () => {
+    // Only establish WebSocket connection if user is connected and has agent
+    if (!address || !hasAgent) {
+      console.log('WebSocket connection skipped - wallet not connected or no agent');
+      return;
+    }
+  
+    try {
+      const ws = new WebSocket(`${WS_URL}/${address}`);
+    
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        setWsConnected(true);
+        setErrorMessage(null);
+      };
+      
+      // Helper function to safely format timestamp
+      const formatTimestamp = (timestamp: any): string => {
+        // If timestamp is already a string, return it
+        if (typeof timestamp === 'string') {
+          return timestamp;
+        }
+        
+        // If it's a number or valid date object
+        try {
+          return new Date(timestamp).toISOString();
+        } catch (e) {
+          // If conversion fails, return current time
+          console.warn("Invalid timestamp format, using current time instead:", timestamp);
+          return new Date().toISOString();
+        }
+      };
+  
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("Received WebSocket message:", data);
+    
+          // Use version with safe timestamp handling
+          const safeData = {
+            ...data,
+            timestamp: formatTimestamp(data.timestamp)
+          };
+    
+          // Handle different message types
+          switch (data.message_type) {
+          case 'status':
+            // Status messages (like "AI is preparing...")
+            setMessages(prev => [...prev, safeData]);
+            break;
+              
+          case 'error':
+            // Error messages
+            setErrorMessage(data.text);
+            setIsTyping(false);
+            setMessages(prev => [...prev, safeData]);
+            break;
+              
+          case 'thinking':
+            // AI thinking steps - show these as they come in
+            setMessages(prev => [...prev, safeData]);
+            break;
+              
+          case 'tool_call':
+            // Tool usage messages
+            setMessages(prev => [...prev, safeData]);
+            break;
+              
+          case 'transaction':
+            // Transaction related messages
+            setMessages(prev => [...prev, safeData]);
+            break;
+              
+          case 'normal':
+            // Regular messages from the AI
+            setIsTyping(false);
+              
+            // Check if we need to update the message with an action
+            const messageWithAction = {
+              ...safeData,
+              action: data.action ? {
+                ...data.action,
+              } : undefined
+            };
+              
+            setMessages(prev => [...prev, messageWithAction]);
+            break;
+              
+          default:
+            // Handle any other message types
+            setIsTyping(false);
+            setMessages(prev => [...prev, safeData]);
+          }
+        } catch (e) {
+          console.error("Error parsing WebSocket message:", e);
+          setErrorMessage("Error processing message from server");
+        }
+      };
+    
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        setWsConnected(false);
+        
+        // Only attempt to reconnect if user is still connected and has agent
+        setTimeout(() => {
+          if (mounted && isConnected && address && hasAgent) {
+            connectWebSocket();
+          }
+        }, 3000);
+      };
+    
+      ws.onerror = (error) => {
+        console.warn('WebSocket connection error - this is normal when wallet not connected or no agent');
+        setErrorMessage('Connection error. Trying to reconnect...');
+      };
+    
+      setWebsocket(ws);
+    } catch (error) {
+      console.warn('Error establishing WebSocket connection:', error);
+    }
+  };
   const fetchPreviousMessages = async () => {
     if (!address) return;
-
+  
     try {
       // First try to use the apiClient - the most robust approach
       const response = await apiClient.getUserMessages(address);
@@ -200,7 +237,7 @@ export default function HomePage() {
           ...msg,
           timestamp: formatTimestamp(msg.timestamp) 
         }));
-
+  
         if (formattedMessages.length > 0) {
           setMessages(formattedMessages);
           return;

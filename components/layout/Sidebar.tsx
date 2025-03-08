@@ -56,6 +56,7 @@ const allNavItems = [
 
 interface SidebarProps {
   isMobile?: boolean;
+  hasAgent: boolean;
   onMobileClose?: () => void;
 }
 
@@ -517,7 +518,7 @@ export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProp
 
       <Divider sx={{ my: 1.5, mx: 2 }} />
 
-      {/* Market trends widget */}
+      {/* Market trends widget - always show for better UX */}
       <Box sx={{ px: 3, py: 1 }}>
         <Typography color="#7D6547" gutterBottom variant="subtitle2">
           Trending Tokens

@@ -1,49 +1,70 @@
+// app/api/messages/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { wallet_address } = body;
+    // Get the wallet address from query params
+    const searchParams = request.nextUrl.searchParams;
+    const walletAddress = searchParams.get('wallet_address')?.toLowerCase();
+    const showHistory = searchParams.get('show_history') === 'true';
     
-    if (!wallet_address) {
+    if (!walletAddress) {
       return NextResponse.json(
         { error: 'Wallet address is required' },
         { status: 400 }
       );
     }
     
-    // Make an API call to your FastAPI backend
+    // Call the backend API
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
-    const response = await fetch(`${backendUrl}/api/agent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ wallet_address }),
-    });
+    const apiUrl = `${backendUrl}/api/messages?wallet_address=${walletAddress}&show_history=${showHistory}`;
     
-    if (!response.ok) {
-      // If backend returns an error, pass it through
-      const errorData = await response.text();
-      console.error(`Error from backend: ${errorData}`);
-      return NextResponse.json(
-        { error: 'Failed to create agent' },
-        { status: response.status }
-      );
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        // If backend returns error, log it
+        const errorText = await response.text();
+        console.error(`Backend error (${response.status}): ${errorText}`);
+        
+        // Return empty messages array instead of error for better UX
+        return NextResponse.json({ messages: [] }, { status: 200 });
+      }
+      
+      const data = await response.json();
+      return NextResponse.json(data);
+    } catch (fetchError) {
+      console.error('Error fetching from backend:', fetchError);
+      // Return empty messages array on fetch error
+      return NextResponse.json({ messages: [] }, { status: 200 });
+    }
+  } catch (error) {
+    console.error('Error in messages API route:', error);
+    
+    // For development, return welcome message
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Returning demo message for development');
+      return NextResponse.json({
+        messages: [
+          {
+            id: '1',
+            sender: 'agent',
+            text: "Hello! I'm your AI Trading Assistant. How can I help you today?",
+            timestamp: new Date().toISOString(),
+            message_type: 'normal',
+          }
+        ]
+      });
     }
     
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error creating agent:', error);
-    
-    // For development/testing, return a successful response
-    // Remove this in production
-    console.warn('⚠️ Returning mock agent creation response for development');
-    return NextResponse.json({ 
-      success: true,
-      agentId: `agent-${Math.random().toString(36).substring(2, 9)}`,
-      message: 'Agent created successfully (mock)' 
-    });
+    return NextResponse.json(
+      { error: 'Internal server error', messages: [] },
+      { status: 500 }
+    );
   }
 }

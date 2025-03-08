@@ -1,4 +1,4 @@
-// /app/api/user-status/route.ts
+// app/api/user-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
       { status: 400 }
     );
   }
+  
+  console.log(`Checking agent status for wallet: ${walletAddress}`);
   
   try {    
     // Call backend API
@@ -31,19 +33,20 @@ export async function GET(request: NextRequest) {
         const errorData = await response.text();
         console.error(`Error from backend: ${errorData}`);
         
-        // Always return mock data in development to avoid blocking the UI
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('⚠️ Returning mock agent status data for development');
-          return NextResponse.json({
-            has_agent: true,
-            multisig_address: `0xms${walletAddress.substring(2, 10)}`
-          });
+        // Return actual failure status in production
+        if (process.env.NODE_ENV === 'production') {
+          return NextResponse.json(
+            { error: 'Failed to check agent status' },
+            { status: response.status }
+          );
         }
         
-        return NextResponse.json(
-          { error: 'Failed to check agent status' },
-          { status: response.status }
-        );
+        // For development, use mock data
+        console.warn('⚠️ Returning mock agent status data for development');
+        return NextResponse.json({
+          has_agent: false, // Important: Return false in development by default
+          multisig_address: null
+        });
       }
       
       const data = await response.json();
@@ -55,11 +58,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error checking agent status:', error);
     
-    // Development mode mock data
-    console.warn('⚠️ Returning mock agent status data for development');
+    // For development/testing, return false to force agent creation
+    console.warn('⚠️ Returning no-agent status data for development flow testing');
     return NextResponse.json({
-      has_agent: true,
-      multisig_address: `0xms${walletAddress.substring(2, 10)}`
+      has_agent: false,
+      multisig_address: null
     });
   }
 }
