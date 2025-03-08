@@ -112,4 +112,4 @@ If you encounter API connection issues:
 -   AI-powered conversational interface
 -   Portfolio analysis and management
 -   Daily market analysis
--   Secure trade execution based on MPC (Multi-Party Computation)
+-   Secure trade execution based on Multi-sig Wallet with trading guard

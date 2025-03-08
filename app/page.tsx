@@ -519,7 +519,7 @@ export default function HomePage() {
             </Box>
             <Chip 
               color="primary" 
-              label="2/2 MPC Wallet" 
+              label="2/2 Multi-sig Wallet" 
               size="small" 
               sx={{ ml: 'auto' }} 
               variant="outlined" 

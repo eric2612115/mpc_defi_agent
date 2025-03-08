@@ -23,7 +23,7 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: 'AI Trading Assistant',
   description: 'Secure crypto trading platform with AI assistance, multi-signature wallet support, and market analysis',
-  keywords: 'AI, trading, cryptocurrency, MPC, multi-signature wallet, secure trading',
+  keywords: 'AI, trading, cryptocurrency, multi-signature wallet, secure trading',
   authors: [{ name: 'AI Trading Assistant Team' }],
 };
 

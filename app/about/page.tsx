@@ -25,7 +25,7 @@ export default function AboutPage() {
   const faqItems: FAQItem[] = [
     {
       question: "What is AI Trading Assistant?",
-      answer: "AI Trading Assistant is a decentralized application (DApp) that combines AI technology with blockchain security. It allows users to interact with AI agents through natural language to execute trades, analyze market trends, and manage portfolios with enhanced security through multi-party computation (MPC) wallet technology."
+      answer: "AI Trading Assistant is a decentralized application (DApp) that combines AI technology with blockchain security. It allows users to interact with AI agents through natural language to execute trades, analyze market trends, and manage portfolios with enhanced security through multi-signature wallet technology."
     },
     {
       question: "How does the multi-signature security work?",
@@ -49,8 +49,8 @@ export default function AboutPage() {
   const features = [
     {
       icon: <SecurityIcon />,
-      title: "MPC Security",
-      description: "Enhanced security through multi-party computation technology. Every transaction requires dual approval from both you and the AI agent."
+      title: "Multi-sig Security",
+      description: "Enhanced security through multi-signature wallet technology. Every transaction requires dual approval from both you and the AI agent."
     },
     {
       icon: <SmartToyIcon />,
@@ -143,7 +143,7 @@ export default function AboutPage() {
             <Chip 
               color="primary" 
               icon={<SecurityIcon />} 
-              label="MPC Security" 
+              label="Multi-sig Security" 
               sx={{ fontSize: '1rem', py: 2, px: 1 }}
               variant="outlined"
             />
