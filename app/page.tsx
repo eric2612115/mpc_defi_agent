@@ -37,13 +37,14 @@ export default function HomePage() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<StructuredMessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [thinkingMessage, setThinkingMessage] = useState<StructuredMessageType | null>(null);
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [hasAgent, setHasAgent] = useState(false);
-
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Fix hydration issues
   useEffect(() => {
@@ -55,17 +56,18 @@ export default function HomePage() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, thinkingMessage]);
 
-  // Load previous messages
+  // Check agent status and load previous messages
   useEffect(() => {
     if (mounted && isConnected && address) {
+      console.log('Checking agent status for address:', address);
+      checkAgentStatus(address);
       fetchPreviousMessages();
     }
   }, [mounted, isConnected, address]);
 
   // WebSocket connection
-  // Update the useEffect to add hasAgent dependency and check
   useEffect(() => {
     if (mounted && isConnected && address && hasAgent) {
       console.log('Connecting WebSocket - user connected and has agent');
@@ -86,6 +88,12 @@ export default function HomePage() {
     };
   }, [mounted, isConnected, address, hasAgent]);
 
+  // Reset "isFirstLoad" when the component unmounts
+  useEffect(() => {
+    return () => {
+      setIsFirstLoad(true);
+    };
+  }, []);
 
   const checkAgentStatus = async (userAddress: string) => {
     if (!userAddress) return;
@@ -158,27 +166,33 @@ export default function HomePage() {
             // Error messages
             setErrorMessage(data.text);
             setIsTyping(false);
+            setThinkingMessage(null);
             setMessages(prev => [...prev, safeData]);
             break;
               
           case 'thinking':
-            // AI thinking steps - show these as they come in
-            setMessages(prev => [...prev, safeData]);
+            // Instead of adding a new message, update the thinking message
+            setIsTyping(true);
+            setThinkingMessage(safeData);
             break;
               
           case 'tool_call':
-            // Tool usage messages
-            setMessages(prev => [...prev, safeData]);
+            // Tool usage messages - update thinking message to show tool usage
+            setIsTyping(true);
+            setThinkingMessage(safeData);
             break;
               
           case 'transaction':
             // Transaction related messages
+            setIsTyping(false);
+            setThinkingMessage(null);
             setMessages(prev => [...prev, safeData]);
             break;
               
           case 'normal':
             // Regular messages from the AI
             setIsTyping(false);
+            setThinkingMessage(null);
               
             // Check if we need to update the message with an action
             const messageWithAction = {
@@ -194,6 +208,7 @@ export default function HomePage() {
           default:
             // Handle any other message types
             setIsTyping(false);
+            setThinkingMessage(null);
             setMessages(prev => [...prev, safeData]);
           }
         } catch (e) {
@@ -224,6 +239,7 @@ export default function HomePage() {
       console.warn('Error establishing WebSocket connection:', error);
     }
   };
+  
   const fetchPreviousMessages = async () => {
     if (!address) return;
   
@@ -232,16 +248,15 @@ export default function HomePage() {
       const response = await apiClient.getUserMessages(address);
       
       // Check if we got data back successfully
-      if (response.data && response.data.messages) {
+      if (response.data && response.data.messages && response.data.messages.length > 0) {
         const formattedMessages = response.data.messages.map((msg: any) => ({
           ...msg,
           timestamp: formatTimestamp(msg.timestamp) 
         }));
   
-        if (formattedMessages.length > 0) {
-          setMessages(formattedMessages);
-          return;
-        }
+        setMessages(formattedMessages);
+        setIsFirstLoad(false); // Successfully loaded messages
+        return;
       } 
       
       // If no messages were found via API client, or if there was an error,
@@ -262,6 +277,7 @@ export default function HomePage() {
             }));
             
             setMessages(formattedMessages);
+            setIsFirstLoad(false); // Successfully loaded messages
             return;
           }
         }
@@ -272,33 +288,33 @@ export default function HomePage() {
       
       // Fallback: If both methods failed to get messages or returned empty arrays,
       // show a welcome message
-      if (messages.length === 0) {
-        setMessages([
-          {
-            id: '1',
-            sender: 'agent',
-            text: "Hello! I'm your AI Trading Assistant. How can I help you today?",
-            timestamp: new Date().toISOString(),
-            message_type: 'normal',
-          } as StructuredMessageType
-        ]);
-      }
+      setMessages([
+        {
+          id: '1',
+          sender: 'agent',
+          text: "Hello! I'm your AI Trading Assistant. How can I help you today?",
+          timestamp: new Date().toISOString(),
+          message_type: 'normal',
+        } as StructuredMessageType
+      ]);
+      setIsFirstLoad(false); // Used fallback welcome message
+      
     } catch (error) {
       console.error('Error fetching messages:', error);
       // Final fallback - show welcome message if all else failed
-      if (messages.length === 0) {
-        setMessages([
-          {
-            id: '1',
-            sender: 'agent',
-            text: "Hello! I'm your AI Trading Assistant. How can I help you today?",
-            timestamp: new Date().toISOString(),
-            message_type: 'normal',
-          } as StructuredMessageType
-        ]);
-      }
+      setMessages([
+        {
+          id: '1',
+          sender: 'agent',
+          text: "Hello! I'm your AI Trading Assistant. How can I help you today?",
+          timestamp: new Date().toISOString(),
+          message_type: 'normal',
+        } as StructuredMessageType
+      ]);
+      setIsFirstLoad(false); // Used fallback welcome message
     }
   };
+  
   const handleSendMessage = () => {
     if (!input.trim() || !isConnected || !wsConnected) return;
   
@@ -312,7 +328,17 @@ export default function HomePage() {
   
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsTyping(true); // Show "AI is thinking..."
+    setIsTyping(true);
+    
+    // Create initial thinking message
+    const initialThinking: StructuredMessageType = {
+      id: 'thinking-' + Date.now().toString(),
+      sender: 'agent',
+      text: "Analyzing your request...",
+      timestamp: new Date().toISOString(),
+      message_type: 'thinking',
+    };
+    setThinkingMessage(initialThinking);
   
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       websocket.send(JSON.stringify({ query: input }));
@@ -322,9 +348,7 @@ export default function HomePage() {
     }
   };
 
-  // 修正 handleConfirmTransaction 函數
   const handleConfirmTransaction = async (data: any) => {
-  // Handle transaction confirmation
     console.log("Confirming transaction:", data);
   
     // Add a confirmation message
@@ -360,7 +384,6 @@ export default function HomePage() {
     }, 2000);
   };
 
-  // 修正 handleSignTransaction 函數
   const handleSignTransaction = async (data: any) => {
     console.log("Requesting user signature for data:", data);
   
@@ -369,7 +392,7 @@ export default function HomePage() {
   
     if (confirmed) {
       try {
-      // Simulate sending the signature
+        // Simulate sending the signature
         setTimeout(() => {
           const successMessage: StructuredMessageType = {
             id: Date.now().toString(),
@@ -395,7 +418,7 @@ export default function HomePage() {
       console.log("User cancelled signature");
 
       try {
-      // Simulate rejection response
+        // Simulate rejection response
         const rejectMessage: StructuredMessageType = {
           id: Date.now().toString(),
           sender: 'system',
@@ -449,6 +472,17 @@ export default function HomePage() {
       return new Date().toISOString();
     }
   };
+
+  // Don't render anything while first loading to prevent flicker
+  if (isFirstLoad && isConnected) {
+    return (
+      <MainLayout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
+          <CircularProgress />
+        </Box>
+      </MainLayout>
+    );
+  }
 
   // Render the chat interface
   return (
@@ -595,9 +629,9 @@ export default function HomePage() {
               />
             ))}
 
-            {/* AI thinking indicator */}
-            {isTyping && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 2 }}>
+            {/* AI thinking indicator - only show when thinking */}
+            {isTyping && thinkingMessage && (
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, ml: 2 }}>
                 <Box
                   sx={{ 
                     width: 38, 
@@ -612,10 +646,47 @@ export default function HomePage() {
                 >
                   <AgentIcon />
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.background.paper, 0.6), p: 2, borderRadius: 2 }}>
-                  <CircularProgress size={16} />
-                  <Typography sx={{ ml: 1 }} variant="body2">
-                    AI is thinking...
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    maxWidth: 'calc(85% - 50px)',
+                    bgcolor: alpha(theme.palette.background.paper, 0.6), 
+                    p: 2, 
+                    borderRadius: 2,
+                    borderLeft: `3px solid ${theme.palette.primary.main}`,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <CircularProgress size={16} sx={{ mr: 1.5 }} />
+                    <Typography fontWeight={500} variant="body2">
+                      {thinkingMessage.message_type === 'tool_call' 
+                        ? 'Using tools to analyze your request...' 
+                        : 'Thinking...'}
+                    </Typography>
+                  </Box>
+                  
+                  <Typography 
+                    color="text.secondary" 
+                    sx={{ 
+                      fontSize: '0.9rem',
+                      opacity: 0.8
+                    }} 
+                    variant="body2"
+                  >
+                    {thinkingMessage.text}
+                  </Typography>
+                  
+                  <Typography
+                    sx={{
+                      display: 'block',
+                      mt: 1,
+                      textAlign: 'left',
+                      opacity: 0.7,
+                    }}
+                    variant="caption"
+                  >
+                    {new Date(thinkingMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Typography>
                 </Box>
               </Box>
