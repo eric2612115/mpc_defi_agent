@@ -1,48 +1,33 @@
-// components/analysis/DateTabs.tsx
+// components/analysis/DateTab.tsx
 import React from 'react';
-import { Box, Tab, Tabs, useTheme } from '@mui/material';
 
-export interface DateTab {
-  date: string;
+export interface DateTabItem {
+  date: string; // YYYY-MM-DD format
   label: string;
 }
 
-interface DateTabsProps {
-  dates: DateTab[];
+interface DateTabProps {
+  tabs: DateTabItem[];
   selectedIndex: number;
-  onChange: (event: React.SyntheticEvent, newValue: number) => void;
+  onChange: (index: number) => void;
 }
 
-const DateTabs: React.FC<DateTabsProps> = ({ dates, selectedIndex, onChange }) => {
-  const theme = useTheme();
-  
+export const DateTabs: React.FC<DateTabProps> = ({ tabs, selectedIndex, onChange }) => {
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-      <Tabs 
-        TabIndicatorProps={{
-          style: {
-            backgroundColor: theme.palette.primary.main,
-            height: 3
-          }
-        }} 
-        onChange={onChange}
-        scrollButtons="auto"
-        value={selectedIndex}
-        variant="scrollable"
-      >
-        {dates.map((date, index) => (
-          <Tab 
-            key={index}
-            label={date.label} 
-            sx={{ 
-              fontWeight: selectedIndex === index ? 600 : 400,
-              color: selectedIndex === index ? theme.palette.primary.main : theme.palette.text.primary
-            }}
-          />
-        ))}
-      </Tabs>
-    </Box>
+    <div className="flex overflow-x-auto pb-2">
+      {tabs.map((tab, index) => (
+        <button
+          className={`mr-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            selectedIndex === index
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-blue-50'
+          }`}
+          key={tab.date}
+          onClick={() => onChange(index)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
   );
 };
-
-export default DateTabs;

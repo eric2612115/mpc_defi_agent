@@ -293,6 +293,62 @@ export async function submitUserSignature(
     };
   }
 }
+
+const MOCK_DAILY_REPORT_DATA = [
+  {
+    "source": "HexG News",
+    "category": "BTC",
+    "title": "Bitcoin's Unstoppable March: Navigating New Highs and Institutional Adoption",
+    "content_summary": "Bitcoin is trading at approximately $88,907 as of March 7, 2025, with a 24-hour trading volume of around $58 billion.",
+    "analysis": [
+      "Bitcoin's resilience at around $88,907 is a testament to its established position as the leading cryptocurrency.",
+      "The rise of institutional adoption is a significant factor, as publicly traded companies are increasingly holding BTC."
+    ],
+    "markdown_content": "# Bitcoin's Unstoppable March\n\nBitcoin has been on a remarkable journey...",
+    "date": "2025-03-07",
+    "keywords": ["Bitcoin", "BTC", "cryptocurrency"],
+    "header_image_url": "https://source.unsplash.com/featured/?cryptocurrency",
+    "featured_image_url": "https://source.unsplash.com/featured/?cryptocurrency"
+  },
+  {
+    "source": "HexG News",
+    "category": "ETH",
+    "title": "Ethereum (ETH) in 2025: Navigating Price Swings",
+    "content_summary": "Ethereum (ETH) currently trades around $2,193.05, reflecting a recent 3.98% dip.",
+    "analysis": ["Ethereum's price reflects market sentiment and volatility within the crypto sphere."],
+    "markdown_content": "# Ethereum in 2025\n\nEthereum continues to evolve...",
+    "date": "2025-03-07",
+    "keywords": ["Ethereum", "ETH", "cryptocurrency"],
+    "header_image_url": "https://source.unsplash.com/featured/?ethereum",
+    "featured_image_url": "https://source.unsplash.com/featured/?ethereum"
+  }
+];
+
+export async function getDailyReport(year: number, month: number, day: number): Promise<ApiResponse<any[]>> {
+  if (USE_MOCK_DATA) {
+    // Use mock data for development
+    console.warn('⚠️ Using mock data for daily report');
+    return {
+      data: MOCK_DAILY_REPORT_DATA,
+      status: 200
+    };
+  }
+  
+  try {
+    // Make API request
+    return await fetchApi<any[]>('/api/get-daily-report', {
+      method: 'POST',
+      body: JSON.stringify({ year, month, day }),
+    });
+  } catch (error) {
+    console.error('Error in getDailyReport:', error);
+    // Return mock data on error
+    return {
+      data: MOCK_DAILY_REPORT_DATA,
+      status: 200
+    };
+  }
+}
   
 /**
  * Reject transaction

@@ -1,12 +1,15 @@
 // app/daily-analysis/page.tsx
 'use client';
 import React, { useEffect, useState } from 'react';
+import styles from './styles.module.css';
 import {
-  alpha, Box, Button, Card, CircularProgress, Divider, Fab,
-  Grid, IconButton, LinearProgress, Typography, useTheme 
+  alpha, Box, Button, Card, CardContent, Chip, CircularProgress, 
+  Divider, Fab, Grid, IconButton, LinearProgress, TextField, 
+  Typography, useTheme, Menu, MenuItem
 } from '@mui/material';
 import {
   ArrowForward as ArrowForwardIcon,
+  CalendarMonth as CalendarIcon,
   InfoOutlined as InfoIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   Refresh as RefreshIcon,
@@ -17,201 +20,233 @@ import MainLayout from '@/components/layout/MainLayout';
 import { useAccount } from 'wagmi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { MarketAnalysis, MarketInsight } from '@/models/MarketAnalysis';
-import { fetchMarketAnalysis, fetchMarketInsights } from '@/mockData/marketAnalysis';
+import MarketInsightsFeed from '@/components/analysis/MarketInsightsFeed';
 
-// 日期標籤數據
-const datesData = [
-  { date: '2025-03-05', label: 'Today' },
-  { date: '2025-03-04', label: 'Yesterday' },
-  { date: '2025-03-03', label: 'March 3' },
-  { date: '2025-03-02', label: 'March 2' },
-  { date: '2025-03-01', label: 'March 1' },
+// Article interface based on the API response
+interface ArticleData {
+  source: string;
+  category: string;
+  title: string;
+  content_summary: string;
+  analysis: string[];
+  markdown_content: string;
+  date: string;
+  keywords: string[];
+  header_image_url: string;
+  featured_image_url: string;
+  update_datetime?: string;
+}
+
+// Date tab type
+interface DateTab {
+  date: string; // YYYY-MM-DD format
+  label: string;
+}
+
+// Mock insights for right sidebar
+const mockInsights = [
+  {
+    _id: 'insight-1',
+    content: 'Bitcoin surpasses $70,000 for the first time in 2025, marking a new all-time high.',
+    publishedAt: new Date().toISOString(),
+    importance: 'high' as 'high',
+    relatedTokens: ['BTC', 'Bitcoin'],
+    source: 'CryptoNews'
+  },
+  {
+    _id: 'insight-2',
+    content: 'Ethereum continues to face resistance at $2,200 level despite network upgrade announcement.',
+    publishedAt: new Date().toISOString(),
+    importance: 'medium' as 'medium',
+    relatedTokens: ['ETH', 'Ethereum'],
+    source: 'DeFi Daily'
+  }
 ];
 
-// News item component
-const NewsItem = ({ item }: { item: MarketInsight }) => {
-  const theme = useTheme();
-  
-  // Format date/time to display how long ago
-  const formatTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ago`;
-  };
-
-  return (
-    <Box 
-      onClick={() => item.url && window.open(item.url, '_blank')}
-      sx={{
-        mb: 2,
-        cursor: item.url ? 'pointer' : 'default',
-        transition: 'transform 0.2s',
-        '&:hover': {
-          transform: item.url ? 'translateY(-2px)' : 'none'
-        }
-      }}
-    >
-      <Box sx={{ display: 'flex', width: '100%' }}>
-        <Box
-          sx={{ 
-            pr: 1.5, 
-            pt: 0.5, 
-            color: item.importance === 'high' 
-              ? 'error.main' 
-              : item.importance === 'medium' 
-                ? theme.palette.primary.main 
-                : 'text.secondary'
-          }}
-        >
-          <TrendingUpIcon fontSize="small" />
-        </Box>
-        <Box sx={{ width: '100%' }}>
-          <Typography sx={{ mb: 0.5, fontWeight: 500 }} variant="body1">
-            {item.content}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-            <Box>
-              {item.relatedTokens.map((token) => (
-                <Box 
-                  component="span"
-                  key={token}
-                  sx={{ 
-                    display: 'inline-block',
-                    mr: 0.5,
-                    px: 1,
-                    py: 0.25,
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    borderRadius: 1,
-                    fontSize: '0.7rem',
-                    color: theme.palette.primary.main,
-                    fontWeight: 500
-                  }}
-                >
-                  {token}
-                </Box>
-              ))}
-            </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography color="text.secondary" variant="caption">
-                {formatTimeAgo(item.publishedAt)}
-              </Typography>
-              
-              {item.source && (
-                <Typography 
-                  color="text.secondary" 
-                  sx={{ ml: 1 }} 
-                  variant="caption"
-                >
-                  • {item.source}
-                </Typography>
-              )}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
-};
-
-export default function DailyAnalysisPage() {
+const DailyAnalysisPage = () => {
   const theme = useTheme();
   const { isConnected } = useAccount();
   const [dateTab, setDateTab] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [insightsLoading, setInsightsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
-  const [marketInsights, setMarketInsights] = useState<MarketInsight[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
-  const [showFullContent, setShowFullContent] = useState(false);
-  const [visibleNewsCount, setVisibleNewsCount] = useState(5);
+  const [articles, setArticles] = useState<ArticleData[]>([]);
+  const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [dateMenuAnchorEl, setDateMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const dateMenuOpen = Boolean(dateMenuAnchorEl);
+  const [customDateInput, setCustomDateInput] = useState('');
+  const [datesData, setDatesData] = useState<DateTab[]>([]);
 
-  // 修復水合問題
+  // Generate dynamic date tabs (today and 4 previous days)
+  const generateDateTabs = () => {
+    const tabs: DateTab[] = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 5; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      
+      const formattedDate = formatDateString(date);
+      const label = i === 0 ? 'Today' : 
+                   i === 1 ? 'Yesterday' : 
+                   date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      
+      tabs.push({
+        date: formattedDate,
+        label
+      });
+    }
+    
+    return tabs;
+  };
+
+  // Format date to YYYY-MM-DD
+  const formatDateString = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Fix hydration issues
   useEffect(() => {
     setMounted(true);
+    // Generate date tabs on mount
+    setDatesData(generateDateTabs());
   }, []);
 
-  // 載入市場分析與見解
-  useEffect(() => {
-    if (mounted && isConnected) {
-      loadMarketData(datesData[dateTab].date);
-      loadMarketInsights();
-    }
-  }, [mounted, isConnected, dateTab]);
-  
   // Add scroll event listener for back-to-top button
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowBackToTop(true);
-      } else {
-        setShowBackToTop(false);
-      }
+      setShowBackToTop(window.scrollY > 300);
     };
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 處理日期選項卡變化
-  const handleDateChange = (event: React.SyntheticEvent, newValue: number) => {
-    setDateTab(newValue);
+  // Fetch data when date tab changes or on mount
+  useEffect(() => {
+    if (mounted && isConnected && datesData.length > 0) {
+      fetchDailyReport();
+    }
+  }, [mounted, isConnected, dateTab, datesData]);
+
+  // Handle date tab change
+  const handleDateChange = (tabIndex: number) => {
+    setDateTab(tabIndex);
     setLoading(true);
   };
 
-  // 載入市場分析數據
-  const loadMarketData = async (date: string) => {
-    setLoading(true);
+  // Handle date menu open
+  const handleDateMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setDateMenuAnchorEl(event.currentTarget);
+  };
+
+  // Handle date menu close
+  const handleDateMenuClose = () => {
+    setDateMenuAnchorEl(null);
+  };
+
+  // Handle custom date selection
+  const handleCustomDateSubmit = () => {
+    // Validate input format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(customDateInput)) {
+      alert("Please enter a valid date in YYYY-MM-DD format");
+      return;
+    }
+    
     try {
-      const data = await fetchMarketAnalysis(date);
-      setMarketAnalysis(data);
+      // Check if it's a valid date
+      const date = new Date(customDateInput);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+      }
+      
+      // Check if it's a future date
+      if (date > new Date()) {
+        alert("Cannot select a future date");
+        return;
+      }
+      
+      // Check if the selected date is in our tabs
+      const existingTabIndex = datesData.findIndex(tab => tab.date === customDateInput);
+      
+      if (existingTabIndex >= 0) {
+        // If date already exists in tabs, select that tab
+        setDateTab(existingTabIndex);
+      } else {
+        // Otherwise, add new tab and select it
+        const newTab = {
+          date: customDateInput,
+          label: formatCustomDateLabel(new Date(customDateInput))
+        };
+        const newDatesData = [...datesData, newTab];
+        setDatesData(newDatesData);
+        setDateTab(newDatesData.length - 1); // New tab will be at the end
+      }
+      
+      // Reset and close
+      setCustomDateInput('');
+      handleDateMenuClose();
     } catch (error) {
-      console.error('Error loading market analysis:', error);
+      alert("Please enter a valid date in YYYY-MM-DD format");
+    }
+  };
+  
+  // Format date label for custom date
+  const formatCustomDateLabel = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  // Fetch daily report from API
+  const fetchDailyReport = async () => {
+    setLoading(true);
+    
+    try {
+      if (datesData.length === 0) {
+        throw new Error("No dates available");
+      }
+      
+      // Get the date from the currently selected tab
+      const selectedDate = datesData[dateTab].date;
+      const [year, month, day] = selectedDate.split('-');
+      
+      console.log(`Fetching report for: ${year}-${month}-${day}`);
+      
+      const response = await fetch(`/api/get-daily-report?year=${year}&month=${month}&day=${day}`);
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Retrieved articles:", data);
+      setArticles(data);
+    } catch (error) {
+      console.error('Error fetching daily report:', error);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // 載入市場見解
-  const loadMarketInsights = async () => {
-    setInsightsLoading(true);
-    try {
-      const response = await fetchMarketInsights(12); // 獲取前12條見解
-      setMarketInsights(response.insights);
-      setLastUpdated(response.lastUpdated);
-    } catch (error) {
-      console.error('Error loading market insights:', error);
-    } finally {
-      setInsightsLoading(false);
+  // Toggle article expanded state
+  const toggleArticleExpanded = (articleTitle: string) => {
+    if (expandedArticleId === articleTitle) {
+      setExpandedArticleId(null);
+    } else {
+      setExpandedArticleId(articleTitle);
     }
   };
 
-  // 重新整理市場見解
-  const handleRefreshInsights = () => {
-    loadMarketInsights();
-    setVisibleNewsCount(5);
+  // Refresh current date data
+  const handleRefresh = () => {
+    fetchDailyReport();
   };
 
-  // Load more news with increment
-  const loadMoreNews = () => {
-    // Always increment by 3 articles at a time
-    setVisibleNewsCount(prev => prev + 3);
-  };
-  
   // Back to top handler
   const handleBackToTop = () => {
     window.scrollTo({
@@ -220,17 +255,199 @@ export default function DailyAnalysisPage() {
     });
   };
 
-  // Get content preview
-  const getContentPreview = () => {
-    if (!marketAnalysis) return '';
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Render article card
+  const renderArticleCard = (article: ArticleData) => {
+    const isExpanded = expandedArticleId === article.title;
+    console.log("Rendering article:", article.title, "Category:", article.category);
     
-    if (showFullContent) {
-      return marketAnalysis.content;
-    } else {
-      // Get the first few paragraphs (approx. first 500 chars)
-      return marketAnalysis.content.substring(0, 500) + 
-        (marketAnalysis.content.length > 500 ? '...' : '');
-    }
+    return (
+      <Card
+        elevation={0}
+        key={article.title}
+        sx={{ 
+          mb: 4,
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          overflow: 'hidden',
+          bgcolor: alpha(theme.palette.background.paper, 0.8)
+        }}
+      >
+        {/* Category tags and title */}
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+            <Chip 
+              label={article.category} 
+              size="small"
+              sx={{ 
+                fontWeight: 500,
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main
+              }}
+            />
+            <Chip 
+              label="Market Analysis" 
+              size="small"
+              sx={{ 
+                fontWeight: 500,
+                bgcolor: alpha(theme.palette.background.paper, 0.5),
+                color: theme.palette.text.primary
+              }}
+            />
+          </Box>
+          
+          <Typography component="h2" fontWeight={600} gutterBottom variant="h5">
+            {article.title}
+          </Typography>
+          
+          <Typography color="text.secondary" variant="body2">
+            {formatDate(article.date)} {article.source && `| ${article.source}`}
+          </Typography>
+        </Box>
+        
+        <Divider />
+        
+        {/* Executive Summary */}
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography fontWeight={600} gutterBottom variant="h6">
+            Executive Summary
+          </Typography>
+          
+          <Typography variant="body1" paragraph>
+            {article.content_summary}
+          </Typography>
+          
+          {/* Analysis Points when not expanded */}
+          {!isExpanded && article.analysis && article.analysis.length > 0 && (
+            <>
+              <Typography fontWeight={600} gutterBottom variant="h6" sx={{ mt: 3 }}>
+                Key Points
+              </Typography>
+              <Box sx={{ mb: 3 }}>
+                {article.analysis.slice(0, 2).map((point, idx) => (
+                  <Box 
+                    key={idx}
+                    sx={{ 
+                      mb: 2, 
+                      p: 2, 
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.background.paper, 0.5),
+                      borderLeft: `4px solid ${theme.palette.primary.main}`,
+                    }}
+                  >
+                    <Typography variant="body2">{point}</Typography>
+                  </Box>
+                ))}
+                {article.analysis.length > 2 && (
+                  <Typography color="text.secondary" variant="body2" sx={{ mt: 1 }}>
+                    ...and {article.analysis.length - 2} more key points
+                  </Typography>
+                )}
+              </Box>
+            </>
+          )}
+          
+          {/* Featured Tokens */}
+          <Box sx={{ mt: 3 }}>
+            <Typography fontWeight={600} gutterBottom variant="subtitle2">
+              Featured Tokens
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {article.category === 'BTC' && (
+                <Chip 
+                  label="BTC +2.3%" 
+                  size="small"
+                  icon={<TrendingUpIcon fontSize="small" />}
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main
+                  }}
+                />
+              )}
+              {article.category === 'ETH' && (
+                <Chip 
+                  label="ETH -1.2%" 
+                  size="small"
+                  icon={<TrendingDownIcon fontSize="small" />}
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.error.main, 0.1),
+                    color: theme.palette.error.main
+                  }}
+                />
+              )}
+              {article.category === 'SOL' && (
+                <Chip 
+                  label="SOL +5.3%" 
+                  size="small"
+                  icon={<TrendingUpIcon fontSize="small" />}
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main
+                  }}
+                />
+              )}
+              {article.category === 'Base' && (
+                <Chip 
+                  label="BASE +1.3%" 
+                  size="small"
+                  icon={<TrendingUpIcon fontSize="small" />}
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main
+                  }}
+                />
+              )}
+            </Box>
+          </Box>
+          
+          {/* Read Full Analysis Button */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+            <Button
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => toggleArticleExpanded(article.title)}
+              sx={{ 
+                borderRadius: 2,
+                px: 3
+              }}
+              variant="outlined"
+            >
+              Read Full Analysis
+            </Button>
+          </Box>
+          
+          {/* Expanded full content */}
+          {isExpanded && (
+            <Box sx={{ mt: 4, pt: 4, borderTop: `1px solid ${theme.palette.divider}` }}>
+              {/* Full Markdown Content */}
+              <Box className={styles.articleContent}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {article.markdown_content}
+                </ReactMarkdown>
+              </Box>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                <Button
+                  onClick={() => toggleArticleExpanded(article.title)}
+                  variant="text"
+                  sx={{ textTransform: 'none' }}
+                >
+                  Show Less
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      </Card>
+    );
   };
 
   if (!mounted) {
@@ -273,34 +490,118 @@ export default function DailyAnalysisPage() {
           </Box>
         ) : (
           <>
-            {/* 日期選項卡 */}
-            <Box sx={{ mb: 3, overflowX: 'auto', whiteSpace: 'nowrap' }}>
-              {datesData.map((date, index) => (
+            {/* Date Tabs Navigation */}
+            <Box 
+              sx={{ 
+                mb: 3, 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                overflowX: 'auto',
+                pb: 1,
+                '&::-webkit-scrollbar': {
+                  height: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: alpha(theme.palette.background.default, 0.1),
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: alpha(theme.palette.primary.main, 0.2),
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: alpha(theme.palette.primary.main, 0.4),
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex' }}>
+                {datesData.map((date, index) => (
+                  <Button
+                    key={date.date}
+                    onClick={() => handleDateChange(index)}
+                    sx={{
+                      mr: 1,
+                      borderRadius: 10,
+                      px: 2,
+                      py: 0.75,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      fontSize: '0.875rem',
+                      backgroundColor: dateTab === index ? theme.palette.primary.main : 'transparent',
+                      color: dateTab === index ? 'white' : theme.palette.text.primary,
+                      borderColor: dateTab === index ? 'transparent' : theme.palette.divider,
+                      '&:hover': {
+                        backgroundColor: dateTab === index ? 
+                          alpha(theme.palette.primary.main, 0.9) : 
+                          alpha(theme.palette.primary.main, 0.05),
+                      },
+                      whiteSpace: 'nowrap'
+                    }}
+                    variant={dateTab === index ? "contained" : "outlined"}
+                  >
+                    {date.label}
+                  </Button>
+                ))}
+              </Box>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Button
-                  key={date.date}
-                  onClick={(e) => handleDateChange(e, index)}
-                  sx={{
-                    mr: 1,
-                    borderRadius: 10,
-                    px: 2,
-                    py: 0.75,
+                  startIcon={<CalendarIcon />}
+                  onClick={handleDateMenuOpen}
+                  sx={{ 
+                    mr: 1, 
                     textTransform: 'none',
-                    fontWeight: 500,
-                    fontSize: '0.875rem',
-                    backgroundColor: dateTab === index ? theme.palette.primary.main : 'transparent',
-                    color: dateTab === index ? 'white' : theme.palette.text.primary,
-                    borderColor: dateTab === index ? 'transparent' : theme.palette.divider,
+                    borderRadius: 10,
+                  }}
+                  variant="outlined"
+                >
+                  Select Date
+                </Button>
+                
+                <Menu
+                  anchorEl={dateMenuAnchorEl}
+                  open={dateMenuOpen}
+                  onClose={handleDateMenuClose}
+                  PaperProps={{
+                    sx: { width: 250, p: 2 }
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={500} sx={{ mb: 2 }}>
+                    Enter custom date
+                  </Typography>
+                  <TextField
+                    label="YYYY-MM-DD"
+                    value={customDateInput}
+                    onChange={(e) => setCustomDateInput(e.target.value)}
+                    placeholder="e.g., 2025-02-15"
+                    fullWidth
+                    size="small"
+                    margin="dense"
+                    sx={{ mb: 2 }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    onClick={handleCustomDateSubmit}
+                    disabled={!customDateInput}
+                  >
+                    Go to Date
+                  </Button>
+                </Menu>
+                
+                <IconButton 
+                  onClick={handleRefresh}
+                  size="small"
+                  sx={{ 
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
                     '&:hover': {
-                      backgroundColor: dateTab === index ? 
-                        alpha(theme.palette.primary.main, 0.9) : 
-                        alpha(theme.palette.primary.main, 0.05),
+                      bgcolor: alpha(theme.palette.primary.main, 0.2)
                     }
                   }}
-                  variant={dateTab === index ? "contained" : "outlined"}
                 >
-                  {date.label}
-                </Button>
-              ))}
+                  <RefreshIcon />
+                </IconButton>
+              </Box>
             </Box>
 
             {/* Content Layout */}
@@ -332,200 +633,9 @@ export default function DailyAnalysisPage() {
                       Loading market analysis...
                     </Typography>
                   </Box>
-                ) : marketAnalysis ? (
-                  <Card
-                    elevation={0}
-                    sx={{ 
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      bgcolor: alpha(theme.palette.background.paper, 0.8),
-                    }}
-                  >
-                    {/* Category filter buttons */}
-                    <Box
-                      sx={{ 
-                        display: 'flex', 
-                        gap: 1,
-                        flexWrap: 'wrap',
-                        p: 2,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        bgcolor: alpha(theme.palette.background.default, 0.5)
-                      }}
-                    >
-                      {marketAnalysis.tags.map((tag) => (
-                        <Button
-                          key={tag._id}
-                          size="small"
-                          sx={{ 
-                            borderRadius: 10,
-                            py: 0.5,
-                            px: 1.5,
-                            textTransform: 'none',
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            minWidth: 'auto',
-                            borderColor: alpha(theme.palette.primary.main, 0.5),
-                            color: theme.palette.primary.main,
-                            bgcolor: alpha(theme.palette.primary.main, 0.05),
-                            '&:hover': {
-                              bgcolor: alpha(theme.palette.primary.main, 0.1),
-                              borderColor: theme.palette.primary.main
-                            }
-                          }}
-                          variant="outlined"
-                        >
-                          {tag.name}
-                        </Button>
-                      ))}
-                    </Box>
-
-                    {/* Article Header */}
-                    <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                      <Typography component="h1" fontWeight={600} gutterBottom variant="h5">
-                        {marketAnalysis.title}
-                      </Typography>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography color="text.secondary" variant="body2">
-                          {new Date(marketAnalysis.publishedAt).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })} | {marketAnalysis.author.name}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    {/* Article Content */}
-                    <Box sx={{ p: { xs: 2, sm: 3 } }}>
-                      <Typography fontWeight={600} gutterBottom variant="h6">
-                        Executive Summary
-                      </Typography>
-                      
-                      <Box 
-                        className="article-content"
-                        sx={{
-                          '& img': {
-                            maxWidth: '100%',
-                            height: 'auto',
-                            borderRadius: 1,
-                            my: 2
-                          },
-                          '& table': {
-                            width: '100%',
-                            borderCollapse: 'collapse',
-                            my: 2
-                          },
-                          '& th, & td': {
-                            border: `1px solid ${theme.palette.divider}`,
-                            p: 1.5
-                          },
-                          '& th': {
-                            bgcolor: alpha(theme.palette.background.default, 0.5),
-                            fontWeight: 600
-                          },
-                          '& ul, & ol': {
-                            pl: 3,
-                            mb: 2
-                          },
-                          '& li': {
-                            mb: 1
-                          },
-                          '& p': {
-                            mb: 2
-                          },
-                          '& h2': {
-                            fontSize: '1.5rem',
-                            fontWeight: 600,
-                            mt: 3,
-                            mb: 2,
-                            pb: 1,
-                            borderBottom: `1px solid ${theme.palette.divider}`
-                          },
-                          '& h3': {
-                            fontSize: '1.25rem',
-                            fontWeight: 600,
-                            mt: 2.5,
-                            mb: 1.5
-                          }
-                        }}
-                      >
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {getContentPreview()}
-                        </ReactMarkdown>
-                      </Box>
-                      
-                      {/* Featured Tokens */}
-                      {marketAnalysis.featuredTokens && marketAnalysis.featuredTokens.length > 0 && (
-                        <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-                          <Typography gutterBottom variant="subtitle2">
-                            Featured Tokens
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {marketAnalysis.featuredTokens.map((token) => (
-                              <Box 
-                                key={token.symbol}
-                                sx={{ 
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  px: 1.5,
-                                  py: 0.5,
-                                  borderRadius: 1,
-                                  bgcolor: token.highlighted ? 
-                                    alpha(theme.palette.primary.main, 0.15) : 
-                                    alpha(theme.palette.background.paper, 0.5),
-                                  border: token.highlighted ? 
-                                    `1px solid ${alpha(theme.palette.primary.main, 0.3)}` : 
-                                    `1px solid ${theme.palette.divider}`,
-                                  fontSize: '0.75rem'
-                                }}
-                              >
-                                <Typography fontWeight={500} variant="caption">
-                                  {token.symbol}
-                                </Typography>
-                                <Box 
-                                  sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center',
-                                    ml: 0.5,
-                                    color: token.priceChange24h > 0 ? 'success.main' : 'error.main'
-                                  }}
-                                >
-                                  {token.priceChange24h > 0 ? 
-                                    <TrendingUpIcon fontSize="inherit" sx={{ fontSize: '0.875rem' }} /> : 
-                                    <TrendingDownIcon fontSize="inherit" sx={{ fontSize: '0.875rem' }} />
-                                  }
-                                  <Typography 
-                                    color="inherit"
-                                    sx={{ fontWeight: 500 }}
-                                    variant="caption"
-                                  >
-                                    {token.priceChange24h > 0 ? '+' : ''}{token.priceChange24h}%
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            ))}
-                          </Box>
-                        </Box>
-                      )}
-                      
-                      {/* Read More / Show Less Button */}
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-                        <Button
-                          endIcon={!showFullContent ? <ArrowForwardIcon /> : undefined}
-                          onClick={() => setShowFullContent(!showFullContent)}
-                          sx={{ 
-                            borderRadius: 2,
-                            textTransform: 'none'
-                          }}
-                          variant="outlined"
-                        >
-                          {showFullContent ? 'Show Less' : 'Read Full Analysis'}
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Card>
+                ) : articles.length > 0 ? (
+                  // Render all article cards
+                  articles.map((article, index) => renderArticleCard(article))
                 ) : (
                   <Box
                     sx={{ 
@@ -563,11 +673,8 @@ export default function DailyAnalysisPage() {
                     bgcolor: alpha(theme.palette.background.paper, 0.7),
                     border: `1px solid ${theme.palette.divider}`,
                     height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
                   }}
                 >
-                  {/* Header */}
                   <Box 
                     sx={{ 
                       p: 2, 
@@ -575,7 +682,6 @@ export default function DailyAnalysisPage() {
                       alignItems: 'center', 
                       justifyContent: 'space-between',
                       borderBottom: `1px solid ${theme.palette.divider}`,
-                      bgcolor: alpha(theme.palette.background.default, 0.3)
                     }}
                   >
                     <Typography fontWeight={600} variant="h6">
@@ -583,81 +689,116 @@ export default function DailyAnalysisPage() {
                     </Typography>
                     
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography color="text.secondary" sx={{ mr: 1 }} variant="caption">
+                      <Typography color="text.secondary" sx={{ mr: 1, fontSize: '0.75rem' }} variant="caption">
                         Updated: just now
                       </Typography>
                       <IconButton 
-                        disabled={insightsLoading}
-                        onClick={handleRefreshInsights}
+                        onClick={handleRefresh}
                         size="small"
                       >
-                        {insightsLoading ? 
-                          <CircularProgress size={16} /> : 
-                          <RefreshIcon fontSize="small" />
-                        }
+                        <RefreshIcon fontSize="small" />
                       </IconButton>
                     </Box>
                   </Box>
                   
-                  {/* News List - With Fixed Height and Scrollable */}
-                  <Box 
-                    sx={{ 
-                      flexGrow: 1,
-                      overflowY: 'auto',
-                      height: { xs: '380px', sm: '450px', lg: '500px' },
-                      p: 2,
-                      '&::-webkit-scrollbar': {
-                        width: '6px',
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        background: alpha(theme.palette.background.default, 0.4),
-                        borderRadius: '10px',
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        background: alpha(theme.palette.primary.main, 0.2),
-                        borderRadius: '10px',
-                        '&:hover': {
-                          background: alpha(theme.palette.primary.main, 0.4),
-                        },
-                      }
-                    }}
-                  >
-                    {insightsLoading && marketInsights.length === 0 ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                        <CircularProgress size={24} />
+                  <Box sx={{ p: 2, height: '600px', overflowY: 'auto' }}>
+                    {/* Bitcoin News Item */}
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <TrendingUpIcon color="success" fontSize="small" sx={{ mt: 0.5 }} />
+                        <Box>
+                          <Typography fontWeight={500} variant="body2">
+                            Bitcoin surpasses $70,000 for the first time in 2025, marking a new all-time high.
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Chip 
+                              label="BTC" 
+                              size="small" 
+                              sx={{ mr: 1, height: 20, fontSize: '0.7rem' }}
+                            />
+                            <Typography color="text.secondary" variant="caption">
+                              just now • CryptoNews
+                            </Typography>
+                          </Box>
+                        </Box>
                       </Box>
-                    ) : marketInsights.length > 0 ? (
-                      marketInsights.slice(0, visibleNewsCount).map((insight) => (
-                        <NewsItem item={insight} key={insight._id} />
-                      ))
-                    ) : (
-                      <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                        No market insights available
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  {/* Footer - Load More */}
-                  <Box 
-                    sx={{ 
-                      p: 2, 
-                      borderTop: `1px solid ${theme.palette.divider}`,
-                      textAlign: 'center' 
-                    }}
-                  >
+                    </Box>
+                    
+                    {/* Ethereum News Item */}
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <TrendingDownIcon color="error" fontSize="small" sx={{ mt: 0.5 }} />
+                        <Box>
+                          <Typography fontWeight={500} variant="body2">
+                            Ethereum continues to face resistance at $2,200 level despite network upgrade announcement.
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Chip 
+                              label="ETH" 
+                              size="small" 
+                              sx={{ mr: 1, height: 20, fontSize: '0.7rem' }}
+                            />
+                            <Typography color="text.secondary" variant="caption">
+                              5m ago • DeFi Daily
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
+                    {/* Solana News Item */}
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <TrendingUpIcon color="success" fontSize="small" sx={{ mt: 0.5 }} />
+                        <Box>
+                          <Typography fontWeight={500} variant="body2">
+                            Solana network activity reaches record high, driving a 5.3% price increase in the last 24 hours.
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Chip 
+                              label="SOL" 
+                              size="small" 
+                              sx={{ mr: 1, height: 20, fontSize: '0.7rem' }}
+                            />
+                            <Typography color="text.secondary" variant="caption">
+                              30m ago • Blockchain Beat
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
+                    {/* Base News Item */}
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <TrendingUpIcon color="success" fontSize="small" sx={{ mt: 0.5 }} />
+                        <Box>
+                          <Typography fontWeight={500} variant="body2">
+                            Coinbase's Base layer-2 solution sees increased adoption with the launch of new DeFi protocols.
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Chip 
+                              label="BASE" 
+                              size="small" 
+                              sx={{ mr: 1, height: 20, fontSize: '0.7rem' }}
+                            />
+                            <Typography color="text.secondary" variant="caption">
+                              1h ago • Layer2 Report
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
                     <Button
                       endIcon={<ArrowForwardIcon />}
-                      onClick={loadMoreNews}
-                      size="small"
+                      fullWidth
                       sx={{ 
-                        borderRadius: 10,
-                        bgcolor: theme.palette.primary.main,
-                        boxShadow: theme.shadows[2],
-                        '&:hover': {
-                          bgcolor: alpha(theme.palette.primary.main, 0.9),
-                        }
+                        mt: 2, 
+                        borderRadius: 2,
+                        textTransform: 'none' 
                       }}
-                      variant="contained"
+                      variant="outlined"
                     >
                       Load More
                     </Button>
@@ -668,6 +809,8 @@ export default function DailyAnalysisPage() {
           </>
         )}
       </Box>
+      
+      {/* Back to top button */}
       
       {/* Back to top button */}
       <Fab
@@ -692,4 +835,6 @@ export default function DailyAnalysisPage() {
       </Fab>
     </MainLayout>
   );
-}
+};
+
+export default DailyAnalysisPage;

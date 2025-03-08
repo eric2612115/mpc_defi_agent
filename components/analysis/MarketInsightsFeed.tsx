@@ -1,5 +1,5 @@
 // components/analysis/MarketInsightsFeed.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   alpha, Box, Button, Card, CardContent, Chip, CircularProgress, 
   Divider, IconButton, Paper, Tooltip, Typography, useTheme
@@ -199,8 +199,8 @@ const MarketInsightsFeed: React.FC<MarketInsightsFeedProps> = ({
           <Box sx={{ p: 2 }}>
             {insights.slice(0, displayCount).map((insight) => (
               <Paper
-                key={insight._id}
                 elevation={1}
+                key={insight._id}
                 onClick={() => handleItemClick(insight)}
                 sx={{ 
                   mb: 2,

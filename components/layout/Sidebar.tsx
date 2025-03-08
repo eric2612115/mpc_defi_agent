@@ -50,7 +50,7 @@ const drawerWidth = 240;
 const allNavItems = [
   { label: 'Chat with AI', href: '/', icon: <ChatIcon fontSize="small" /> },
   { label: 'Daily Analysis', href: '/daily-analysis', icon: <ChartIcon fontSize="small" /> },
-  { label: 'Portfolio', href: '/assets', icon: <WalletIcon fontSize="small" /> },
+  { label: 'Portfolio', href: '/portfolio', icon: <WalletIcon fontSize="small" /> },
   { label: 'About', href: '/about', icon: <InfoIcon fontSize="small" /> }
 ];
 
