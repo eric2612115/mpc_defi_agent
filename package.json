@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --config eslint.config.mjs --fix ."
+    "lint": "next lint --config eslint.config.mjs --fix .",
+    "gen:api": "npx openapi-typescript-codegen --input https://hexa-wallet-worker-nf2n.onrender.com/api-docs-json --output ./lib/wallet --indent 2 --client axios --useOptions --exportCore true --exportServices true --exportModels true --exportSchemas true"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.3.0",
@@ -16,9 +17,10 @@
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@rainbow-me/rainbowkit": "^2.2.4",
-    "@tanstack/react-query": "^5.66.9",
+    "@tanstack/react-query": "^5.67.2",
     "@types/lodash": "^4.17.15",
     "@wagmi/core": "^2.16.5",
+    "axios": "^1.8.2",
     "chart.js": "^4.4.8",
     "ethers": "^5.8.0",
     "jotai": "^2.12.1",

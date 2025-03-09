@@ -6,48 +6,12 @@ import {
   trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { createConfig, http, WagmiProvider } from 'wagmi';
-import { arbitrum, base, mainnet, optimism, polygon, sepolia, sonic } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia, base, mainnet, optimism, polygon, sepolia, sonic } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
+import { wagmiConfig } from './wagmi/wagmi';
 // Configure wallets
-
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: 'Other',
-      wallets: [argentWallet, trustWallet, ledgerWallet],
-    },
-  ],
-  {
-    appName: 'Gun.AI{Safe}',
-    projectId: 'YOUR_PROJECT_ID',
-  }
-);
-
-// Create wagmi config
-const config = createConfig({
-  chains: [
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-    sonic,
-    base,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [sepolia] : []),
-  ],
-  transports: {
-    [mainnet.id]: http(),
-    [polygon.id]: http(),
-    [optimism.id]: http(),
-    [arbitrum.id]: http(),
-    [sonic.id]: http(),
-    [base.id]: http(),
-    [sepolia.id]: http(), 
-  },
-  connectors: connectors,
-});
-
 const queryClient = new QueryClient();
 
 
@@ -63,7 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider 
           appInfo={{

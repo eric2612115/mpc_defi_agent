@@ -16,7 +16,7 @@ export default function ConnectWalletPrompt() {
     },
     {
       icon: <SecurityIcon fontSize="large" />,
-      title: 'Secure MPC Technology',
+      title: 'Secure Multi-sig Technology',
       description: 'Your assets stay protected with multi-party computation security',
     },
     {

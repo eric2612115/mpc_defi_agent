@@ -1,16 +1,17 @@
 // components/common/CreateAgentPrompt.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
+  Alert, 
   alpha, 
   Box, 
   Button, 
   Card, 
   CardContent, 
   CircularProgress, 
-  Divider, 
-  List,
-  ListItem, 
+  Divider,
+  List, 
+  ListItem,
   ListItemIcon,
   ListItemText,
   Paper,
@@ -18,8 +19,7 @@ import {
   StepLabel,
   Stepper,
   Typography,
-  useTheme,
-  Alert
+  useTheme
 } from '@mui/material';
 import { 
   Assignment as AssignmentIcon, 
@@ -54,7 +54,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
 
   // Define steps
   const steps = [
-    'Learn about MPC Security',
+    'Learn about Multi-sig Security',
     'Create AI Agent',
     'Fund Your Wallet'
   ];
@@ -62,8 +62,8 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
   // Security features
   const securityFeatures = [
     {
-      name: 'Multi-Party Computation (MPC)',
-      description: 'Secures your transactions through advanced cryptography'
+      name: 'Trading Guard',
+      description: 'Secures your transactions with special trading guard'
     },
     {
       name: '2/2 Signature Requirement',
@@ -117,7 +117,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
       const success = await onCreateAgent();
       
       if (success) {
-        // Generate a fake MPC address for demo purposes
+        // Generate a fake Multi-sig address for demo purposes
         const randomAddr = `0x${Array.from({length: 40}, () => 
           '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('')}`;
         setAgentAddress(randomAddr);
@@ -142,10 +142,10 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <SecurityIcon sx={{ fontSize: 60, color: theme.palette.primary.main, mb: 2 }} />
             <Typography fontWeight={600} gutterBottom variant="h5">
-              Secure Your Assets with MPC Technology
+              Secure Your Assets with Multi-sig Technology
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }} variant="body1">
-              The AI Trading Assistant uses Multi-Party Computation (MPC) to create a secure 2/2 
+              The AI Trading Assistant uses Multi-sig Wallet to create a secure 2/2 
               signature wallet. Both you and the AI must approve any transaction.
             </Typography>
           </Box>
@@ -224,9 +224,9 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
 
           {error && (
             <Alert 
-              severity="error" 
+              onClose={() => setError(null)} 
+              severity="error"
               sx={{ mb: 3 }}
-              onClose={() => setError(null)}
             >
               {error}
             </Alert>
@@ -277,11 +277,11 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
           {(loading || isCreating) && (
             <Box sx={{ textAlign: 'center', p: 4, mb: 4 }}>
               <CircularProgress size={60} sx={{ mb: 3 }} />
-              <Typography variant="h6" gutterBottom>
+              <Typography gutterBottom variant="h6">
                 Creating Your AI Agent...
               </Typography>
               <Typography color="text.secondary" variant="body2">
-                We&apos;re setting up your personal AI Trading Assistant and secure MPC wallet.
+                We&apos;re setting up your personal AI Trading Assistant and secure Multi-sig wallet.
                 This may take a moment.
               </Typography>
             </Box>
@@ -291,13 +291,13 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
             {!loading && !isCreating && (
               <>
                 <Button
+                  disabled={loading || isCreating}
                   onClick={handleBack}
                   sx={{ 
                     px: 3,
                     borderRadius: 2,
                   }}
                   variant="outlined"
-                  disabled={loading || isCreating}
                 >
                   Back
                 </Button>
@@ -341,7 +341,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
               AI Agent Created Successfully!
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 1, maxWidth: 600, mx: 'auto' }} variant="body1">
-              Your AI Trading Assistant is now ready to use. A new MPC wallet has been created.
+              Your AI Trading Assistant is now ready to use. A new Multi-sig wallet has been created.
             </Typography>
             <Typography
               sx={{ 
@@ -355,7 +355,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
               }}
               variant="subtitle2"
             >
-              MPC Wallet Address: {agentAddress}
+              Multi-sig Wallet Address: {agentAddress}
             </Typography>
           </Box>
 
@@ -377,7 +377,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
                     <MoneyIcon color="primary" fontSize="small" />
                   </ListItemIcon>
                   <ListItemText 
-                    primary="Fund your MPC wallet"
+                    primary="Fund your Multi-sig wallet"
                     secondary="Transfer assets to start trading"
                   />
                 </ListItem>

@@ -12,7 +12,7 @@ import {
   Search as SearchIcon,
   AccountBalanceWallet as WalletIcon
 } from '@mui/icons-material';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import MainLayout from '@/components/layout/MainLayout';
 import AssetTable from '@/components/portfolio/AssetTable';
 import TransactionHistory from '@/components/portfolio/TransactionHistory';
@@ -20,6 +20,15 @@ import QuickTransferCard from '@/components/portfolio/QuickTransferCard';
 import DepositDialog from '@/components/portfolio/DepositDialog';
 import type { Asset } from '@/components/portfolio/AssetTable';
 import type { Transaction } from '@/components/portfolio/TransactionHistory';
+import { useQueryWallets } from '@/hooks/useQueryWallets';
+// import { OdosSwapWidget } from "odos-widgets";
+// import {
+//   defaultInputTokenMap,
+//   defaultOutputTokenMap,
+//   exampleRetroTheme,
+//   tokenWhitelistMap,
+// } from "@/app/odos/odos";
+// import { wagmiConfig } from '../wagmi/wagmi';
 
 // API URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
@@ -28,6 +37,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
 interface MultisigWallet {
   name: string;
   multisig_address: string;
+  chain: string;
+  chainId: number;
 }
 
 export default function PortfolioPage() {
@@ -43,6 +54,7 @@ export default function PortfolioPage() {
   const [successAlert, setSuccessAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [selectedMultisigWalletAddress, setSelectedMultisigWalletAddress] = useState<string>('');
 
   // Wallet type
   const walletType = tabValue === 0 ? 'personal' : 'multisig';
@@ -58,7 +70,19 @@ export default function PortfolioPage() {
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [loadingRelatedWallets, setLoadingRelatedWallets] = useState(false);
+  const chainId = useChainId();
 
+  // Fetch multi-signature wallets using the hook
+  const { 
+    data: walletsData,
+    isLoading: isLoadingWallets,
+    error: walletsError,
+    refetch: refetchWallets
+  } = useQueryWallets({
+    chain: chainId,
+    ownerAddress: address || '',
+    enabled: mounted && isConnected && Boolean(address)
+  });
   
   // Current assets based on selected wallet type
   const currentAssets = walletType === 'personal' ? personalAssets : multisigAssets;
@@ -68,52 +92,38 @@ export default function PortfolioPage() {
     setMounted(true);
   }, []);
 
-  // Fetch related multisig wallets when connected
+  // Process wallets data when it's available
   useEffect(() => {
-    if (mounted && isConnected && address) {
-      fetchRelatedMultisigWallets();
+    if (walletsData?.safeWalletList && walletsData.safeWalletList.length > 0) {
+      const formattedWallets: MultisigWallet[] = walletsData.safeWalletList.map((wallet, idx) => ({
+        name: `Multi-Sig Wallet-${idx+1}`,
+        // ${wallet.safeAddress.substring(0, 6)}...${wallet.safeAddress.substring(wallet.safeAddress.length - 4)}
+        multisig_address: wallet.safeAddress,
+        chain: wallet.chain || 'Ethereum',
+        chainId: wallet.chainId ?? (wallet.chain ? parseInt(wallet.chain) : chainId || 1)
+      }));
+      setRelatedMultisigWallets(formattedWallets);
+      
+      // Set the first multisig wallet as selected if none is selected
+      if (formattedWallets.length > 0 && !selectedMultisigWalletAddress) {
+        setSelectedMultisigWalletAddress(formattedWallets[0].multisig_address);
+      }
+    } else {
+      setRelatedMultisigWallets([]);
     }
-  }, [mounted, isConnected, address]);
+  }, [walletsData, selectedMultisigWalletAddress, chainId]);
 
   // Fetch assets when wallet connected or tab changes
   useEffect(() => {
     if (mounted && isConnected && address) {
       if (walletType === 'personal') {
         fetchPersonalAssets();
-      } else {
+      } else if (selectedMultisigWalletAddress) {
         fetchMultisigAssets();
       }
       fetchTransactions();
     }
-  }, [mounted, isConnected, address, walletType]);
-
-  // Fetch related multisig wallets
-  const fetchRelatedMultisigWallets = async () => {
-    if (!address) return;
-    
-    setLoadingRelatedWallets(true);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/get-wallets-related-multi-sig-wallets?wallet_address=${address}`);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setRelatedMultisigWallets(data);
-      console.log("Retrieved multisig wallets:", data);
-    } catch (error) {
-      console.error('Error fetching related multisig wallets:', error);
-      // Use mock data as fallback
-      setRelatedMultisigWallets([
-        { name: "Multi-Sig Wallet 1", multisig_address: "0x1234567890abcdef1234567890abcdef12345678" },
-        { name: "Multi-Sig Wallet 2", multisig_address: "0xabcdef1234567890abcdef1234567890abcdef12" }
-      ]);
-    } finally {
-      setLoadingRelatedWallets(false);
-    }
-  };
+  }, [mounted, isConnected, address, walletType, selectedMultisigWalletAddress]);
 
   // Fetch personal wallet assets
   const fetchPersonalAssets = async () => {
@@ -149,6 +159,7 @@ export default function PortfolioPage() {
         chain: item.chain,
         chainIndex: item.chainIndex,
         tokenAddress: item.tokenAddress,
+        decimals: item.decimals || 18, // Default to 18 if not provided
         logoUrl: item.icon || undefined,
       }));
       
@@ -163,9 +174,42 @@ export default function PortfolioPage() {
       console.error('Error fetching personal assets:', error);
       // Use mock data as fallback
       setPersonalAssets([
-        { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 2.5, price: 3500, value: 8750, change24h: 1.2, chain: 'Ethereum' },
-        { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 5000, price: 1, value: 5000, change24h: 0, chain: 'Ethereum' },
-        { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 100, price: 15, value: 1500, change24h: -0.5, chain: 'Ethereum' }
+        { 
+          id: '1', 
+          name: 'Ethereum', 
+          symbol: 'ETH', 
+          balance: 2.5, 
+          price: 3500, 
+          value: 8750, 
+          change24h: 1.2, 
+          chain: 'Ethereum',
+          tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
+          decimals: 18
+        },
+        { 
+          id: '2', 
+          name: 'USD Coin', 
+          symbol: 'USDC', 
+          balance: 5000, 
+          price: 1, 
+          value: 5000, 
+          change24h: 0, 
+          chain: 'Ethereum',
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
+          decimals: 6
+        },
+        { 
+          id: '3', 
+          name: 'ChainLink', 
+          symbol: 'LINK', 
+          balance: 100, 
+          price: 15, 
+          value: 1500, 
+          change24h: -0.5, 
+          chain: 'Ethereum',
+          tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
+          decimals: 18
+        }
       ]);
       
       if (walletType === 'personal') {
@@ -178,14 +222,13 @@ export default function PortfolioPage() {
 
   // Fetch multisig wallet assets
   const fetchMultisigAssets = async () => {
-    if (!address || relatedMultisigWallets.length === 0) return;
+    if (!selectedMultisigWalletAddress) return;
     
     setLoadingAssets(true);
     
     try {
-      // Use the first multisig wallet address
-      // In a real app, you might want to let the user select which multisig wallet to use
-      const multisigAddress = relatedMultisigWallets[0].multisig_address;
+      // Use the selected multisig wallet address
+      const currentMultisigAddress = selectedMultisigWalletAddress;
       
       // Use the same API endpoint with multisig address
       const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
@@ -193,7 +236,7 @@ export default function PortfolioPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ wallet_address: multisigAddress }),
+        body: JSON.stringify({ wallet_address: currentMultisigAddress }),
       });
       
       if (!response.ok) {
@@ -214,6 +257,7 @@ export default function PortfolioPage() {
         chain: item.chain,
         chainIndex: item.chainIndex,
         tokenAddress: item.tokenAddress,
+        decimals: item.decimals || 18, // Default to 18 if not provided
         logoUrl: item.icon || undefined,
         // Simulate whitelist status - should come from API
         isWhitelisted: Math.random() > 0.3 // 70% chance of being whitelisted
@@ -230,9 +274,45 @@ export default function PortfolioPage() {
       console.error('Error fetching multisig assets:', error);
       // Use mock data as fallback
       setMultisigAssets([
-        { id: '1', name: 'Ethereum', symbol: 'ETH', balance: 1.8, price: 3500, value: 6300, change24h: 1.2, chain: 'Ethereum', isWhitelisted: true },
-        { id: '2', name: 'USD Coin', symbol: 'USDC', balance: 10000, price: 1, value: 10000, change24h: 0, chain: 'Ethereum', isWhitelisted: true },
-        { id: '3', name: 'ChainLink', symbol: 'LINK', balance: 80, price: 15, value: 1200, change24h: -0.5, chain: 'Ethereum', isWhitelisted: false }
+        { 
+          id: '1', 
+          name: 'Ethereum', 
+          symbol: 'ETH', 
+          balance: 1.8, 
+          price: 3500, 
+          value: 6300, 
+          change24h: 1.2, 
+          chain: 'Ethereum', 
+          isWhitelisted: true,
+          tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
+          decimals: 18
+        },
+        { 
+          id: '2', 
+          name: 'USD Coin', 
+          symbol: 'USDC', 
+          balance: 10000, 
+          price: 1, 
+          value: 10000, 
+          change24h: 0, 
+          chain: 'Ethereum', 
+          isWhitelisted: true,
+          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
+          decimals: 6
+        },
+        { 
+          id: '3', 
+          name: 'ChainLink', 
+          symbol: 'LINK', 
+          balance: 80, 
+          price: 15, 
+          value: 1200, 
+          change24h: -0.5, 
+          chain: 'Ethereum', 
+          isWhitelisted: false,
+          tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
+          decimals: 18
+        }
       ]);
       
       if (walletType === 'multisig') {
@@ -322,6 +402,7 @@ export default function PortfolioPage() {
     setRefreshing(true);
     
     Promise.all([
+      refetchWallets(),
       walletType === 'personal' ? fetchPersonalAssets() : fetchMultisigAssets(),
       fetchTransactions()
     ]).finally(() => {
@@ -384,7 +465,11 @@ export default function PortfolioPage() {
     symbol: asset.symbol,
     name: asset.name,
     balance: asset.balance,
-    value: asset.value
+    value: asset.value,
+    tokenAddress: asset.tokenAddress,
+    decimals: asset.decimals,
+    chain: asset.chain || 'Ethereum',
+    chainId: asset.chainIndex ? parseInt(asset.chainIndex) : chainId || 1,
   }));
 
   const tokenBalancesMap = currentAssets.reduce((acc, asset) => {
@@ -396,13 +481,17 @@ export default function PortfolioPage() {
   const handleMultisigWithdraw = (asset: Asset) => {
     console.log('Withdraw from multisig wallet:', asset);
     
+    // Get the selected wallet name
+    const selectedWallet = relatedMultisigWallets.find(wallet => wallet.multisig_address === selectedMultisigWalletAddress);
+    const walletName = selectedWallet?.name || 'Multi-Signature wallet';
+    
     // Simulate API call
     if (asset.isWhitelisted) {
       // Direct withdrawal
-      setSuccessMessage(`Withdrawing ${asset.balance} ${asset.symbol} from Multi-Signature wallet`);
+      setSuccessMessage(`Withdrawing ${asset.balance} ${asset.symbol} from ${walletName}`);
     } else {
       // Additional approval required
-      setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol}. Additional approval required for non-whitelisted assets.`);
+      setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol} from ${walletName}. Additional approval required for non-whitelisted assets.`);
     }
     
     setSuccessAlert(true);
@@ -413,16 +502,19 @@ export default function PortfolioPage() {
   const handleTransfer = (data: { token: string; amount: string; recipient: string }) => {
     console.log('Transferring', data.amount, data.token, 'to', data.recipient);
     
-    // Simulate API call
-    setSuccessMessage(`Successfully transferred ${data.amount} ${data.token} to ${data.recipient.substring(0, 6)}...${data.recipient.substring(data.recipient.length - 4)}`);
-    setSuccessAlert(true);
-    setTimeout(() => setSuccessAlert(false), 3000);
+    // The actual transfer is now handled by the QuickTransferCard component
+    // using the wagmi useWriteContract hook.
+    // This function now only handles UI updates post-transfer.
     
-    // Refresh assets after transfer
+    setSuccessMessage(`Transfer of ${data.amount} ${data.token} to ${data.recipient.substring(0, 6)}...${data.recipient.substring(data.recipient.length - 4)} initiated`);
+    setSuccessAlert(true);
+    setTimeout(() => setSuccessAlert(false), 5000);
+    
+    // Refresh assets after a short delay (transaction might not be confirmed yet)
     setTimeout(() => {
       fetchPersonalAssets();
       fetchMultisigAssets();
-    }, 1000);
+    }, 3000);
   };
 
   // Handle sorting
@@ -462,6 +554,35 @@ export default function PortfolioPage() {
   };
 
   const filteredAssets = filterAndSortAssets(currentAssets);
+
+  // Handle multisig wallet selection
+  const handleMultisigWalletChange = (walletAddress: string) => {
+    setSelectedMultisigWalletAddress(walletAddress);
+  };
+
+  // Handle creating a new multisig wallet
+  const handleCreateMultisig = async () => {
+    try {
+      // Show loading state
+      setLoadingRelatedWallets(true);
+      
+      // Refresh the wallet list
+      await refetchWallets();
+      
+      // Show success message
+      setSuccessMessage('Multi-signature wallet created successfully!');
+      setSuccessAlert(true);
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessAlert(false);
+      }, 5000);
+    } catch (error) {
+      console.error('Error refreshing wallet list:', error);
+    } finally {
+      setLoadingRelatedWallets(false);
+    }
+  };
 
   // Show nothing when not mounted (to prevent hydration issues)
   if (!mounted) {
@@ -532,13 +653,17 @@ export default function PortfolioPage() {
             
             {/* Quick transfer card */}
             <QuickTransferCard
-              availableTokens={availableTokensForTransfer}  // Updated prop
-              isLoadingWallets={loadingRelatedWallets}
+              availableTokens={availableTokensForTransfer}
+              isLoadingWallets={isLoadingWallets}
+              onCreateMultisig={handleCreateMultisig}
               onTransfer={handleTransfer}
               relatedWallets={relatedMultisigWallets}
               totalBalance={totalBalance}
               userWalletAddress={address || ''}
-              userWalletName={walletType === 'personal' ? 'My Personal Wallet' : 'My Multi-Signature Wallet'}
+              userWalletName={walletType === 'personal' 
+                ? 'My Personal Wallet' 
+                : relatedMultisigWallets.find(wallet => wallet.multisig_address === selectedMultisigWalletAddress)?.name || 'My Multi-Signature Wallet'
+              }
             />
 
             {/* Wallet type tabs */}
@@ -569,6 +694,53 @@ export default function PortfolioPage() {
                 />
               </Tabs>
             </Box>
+
+            {/* Multi-signature wallet selector (only shown when multi-sig tab is selected) */}
+            {tabValue === 1 && (
+              <Box sx={{ mb: 3 }}>
+                {isLoadingWallets ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} />
+                    <Typography variant="body2">Loading wallets...</Typography>
+                  </Box>
+                ) : walletsError ? (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    Error loading multi-signature wallets. Please try again.
+                  </Alert>
+                ) : relatedMultisigWallets.length === 0 ? (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    No multi-signature wallets found. Create one to get started.
+                  </Alert>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography sx={{ minWidth: 120 }} variant="body2">
+                      Select wallet:
+                    </Typography>
+                    <TextField
+                      SelectProps={{
+                        native: true,
+                      }}
+                      onChange={(e) => handleMultisigWalletChange(e.target.value)}
+                      select
+                      size="small"
+                      sx={{ 
+                        minWidth: 300,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                        }
+                      }}
+                      value={selectedMultisigWalletAddress}
+                    >
+                      {relatedMultisigWallets.map((wallet) => (
+                        <option key={wallet.multisig_address} value={wallet.multisig_address}>
+                          {wallet.name}
+                        </option>
+                      ))}
+                    </TextField>
+                  </Box>
+                )}
+              </Box>
+            )}
 
             {/* Search and action buttons */}
             <Box 
@@ -647,6 +819,11 @@ export default function PortfolioPage() {
                 onDeposit={handlePersonalDeposit} 
                 onSort={handleSort} 
                 onWithdraw={handleMultisigWithdraw}
+                selectedWalletAddress={walletType === 'multisig' ? selectedMultisigWalletAddress : undefined}
+                selectedWalletName={walletType === 'multisig' 
+                  ? relatedMultisigWallets.find(wallet => wallet.multisig_address === selectedMultisigWalletAddress)?.name 
+                  : undefined
+                }
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
                 walletType={walletType}
@@ -669,6 +846,10 @@ export default function PortfolioPage() {
               open={depositOpen} 
               preSelectedAmount={selectedAsset?.balance.toString()}
               preSelectedToken={selectedAsset?.symbol}
+              selectedWalletName={walletType === 'multisig' && selectedMultisigWalletAddress
+                ? relatedMultisigWallets.find(wallet => wallet.multisig_address === selectedMultisigWalletAddress)?.name
+                : undefined
+              }
               tokenBalances={tokenBalancesMap}
               walletType={walletType}
             />
