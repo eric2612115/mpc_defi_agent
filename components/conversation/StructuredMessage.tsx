@@ -127,13 +127,13 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
   const renderMessageTypeLabel = () => {
     switch (message.message_type) {
     case 'thinking':
-      return <Chip color="primary" label={message.phase || "思考"} size="small" sx={{ mb: 1 }} />;
+      return <Chip color="primary" label={message.phase || "Thinking"} size="small" sx={{ mb: 1 }} />;
     case 'tool_call':
-      return <Chip color="info" label={`工具: ${message.tool?.name}`} size="small" sx={{ mb: 1 }} />;
+      return <Chip color="info" label={`Tools: ${message.tool?.name}`} size="small" sx={{ mb: 1 }} />;
     case 'transaction':
-      return <Chip color="secondary" label="交易" size="small" sx={{ mb: 1 }} />;
+      return <Chip color="secondary" label="Trade" size="small" sx={{ mb: 1 }} />;
     case 'error':
-      return <Chip color="error" label="錯誤" size="small" sx={{ mb: 1 }} />;
+      return <Chip color="error" label="Error" size="small" sx={{ mb: 1 }} />;
     default:
       return null;
     }
