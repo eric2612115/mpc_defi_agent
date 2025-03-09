@@ -111,14 +111,14 @@ const CreateMultisigModal: React.FC<CreateMultisigModalProps> = ({
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           {/* Wallet Name */}
-          <TextField
+          {/* <TextField
             disabled={loading || isLoadingAi}
             fullWidth
             label="Wallet Name"
             margin="normal"
             onChange={(e) => setWalletName(e.target.value)}
             value={walletName}
-          />
+          /> */}
 
           {/* Owners Information */}
           <Typography sx={{ mt: 2, mb: 1 }} variant="subtitle2">
