@@ -24,6 +24,7 @@ interface DepositDialogProps {
   preSelectedToken?: string;
   preSelectedAmount?: string;  // Add support for prefilled amount
   tokenBalances?: {[key: string]: number}; // Map of token symbols to balances
+  selectedWalletName?: string; // Name of the selected multi-signature wallet
   onClose: () => void;
   onSubmit: (token: string, amount: string) => void;
 }
@@ -34,6 +35,7 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
   preSelectedToken,
   preSelectedAmount,
   tokenBalances = {},
+  selectedWalletName,
   onClose, 
   onSubmit 
 }) => {
@@ -106,15 +108,24 @@ const DepositDialog: React.FC<DepositDialogProps> = ({
       onClose={handleClose}
       open={open}
     >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">
-            {walletType === 'personal' ? 'Deposit to Personal Wallet' : 'Deposit to Multi-Signature Wallet'}
-          </Typography>
-          <IconButton onClick={handleClose} size="small">
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </Box>
+      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography component="div" variant="h6">
+          {walletType === 'personal' 
+            ? 'Deposit to Personal Wallet' 
+            : selectedWalletName 
+              ? `Deposit to ${selectedWalletName}` 
+              : 'Deposit to Multi-Signature Wallet'
+          }
+        </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            color: theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 1 }}>

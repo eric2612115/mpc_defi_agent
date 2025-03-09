@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 export { ApiError } from './core/ApiError';
 export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
@@ -66,4 +66,4 @@ export { $WhitelistListItem } from './schemas/$WhitelistListItem';
 export { $WhitelistListResponse } from './schemas/$WhitelistListResponse';
 
 export { AssetService } from './services/AssetService';
-export { DefaultService } from './services/DefaultService';
+export { WalletService } from './services/WalletService';

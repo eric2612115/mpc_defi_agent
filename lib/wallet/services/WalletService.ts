@@ -19,7 +19,7 @@ import type { WhitelistListResponse } from '../models/WhitelistListResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
-export class DefaultService {
+export class WalletService {
   /**
    * @returns any Health check
    * @throws ApiError
@@ -124,7 +124,7 @@ export class DefaultService {
     chain,
   }: {
     ownerAddress: string,
-    chain?: string,
+    chain?: string | number,
   }): CancelablePromise<ListWalletResponse> {
     return __request(OpenAPI, {
       method: 'GET',
