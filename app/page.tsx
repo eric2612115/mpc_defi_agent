@@ -148,6 +148,12 @@ export default function HomePage() {
         try {
           const data = JSON.parse(event.data);
           console.log("Received WebSocket message:", data);
+
+          // Skip ping messages
+          if (data.type === "ping") {
+            console.log("Received ping message, ignoring");
+            return;
+          }
     
           // Use version with safe timestamp handling
           const safeData = {
