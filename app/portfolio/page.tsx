@@ -496,6 +496,10 @@ export default function PortfolioPage() {
     });
   };
 
+  useEffect(() => {
+    handleRefresh();
+  }, [address, chainId, walletType]);
+
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
