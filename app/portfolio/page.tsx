@@ -159,7 +159,7 @@ export default function PortfolioPage() {
         chain: item.chain,
         chainIndex: item.chainIndex,
         tokenAddress: item.tokenAddress,
-        decimals: item.decimals || 18, // Default to 18 if not provided
+        decimals: item.decimals,
         logoUrl: item.icon || undefined,
       }));
       
@@ -461,7 +461,7 @@ export default function PortfolioPage() {
   };
 
   // Add this before the return statement
-  const availableTokensForTransfer = currentAssets.map(asset => ({
+  const availableTokensForTransfer = personalAssets.map(asset => ({
     symbol: asset.symbol,
     name: asset.name,
     balance: asset.balance,

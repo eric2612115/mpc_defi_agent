@@ -20,6 +20,7 @@ import { useChainId, useConfig, useSwitchChain, useWaitForTransactionReceipt, us
 import { parseUnits } from 'viem';
 import CreateMultisigModal from './CreateMultisigModal';
 import { openExplorer } from '../../utils/explorerUtils';
+import { AssetService } from '@/lib/wallet';
 
 // ERC20 ABI (minimal for transfer)
 const erc20Abi = [
@@ -214,9 +215,17 @@ const QuickTransferCard: React.FC<QuickTransferCardProps> = ({
 
     try {
       // Get token decimals (default to 18 if not specified)
-      const decimals = selectedTokenData.decimals || 18;
-      
+          
       // Parse amount with proper decimals
+      const assetInfo = await AssetService.assetControllerGetAssetsList({
+        chainId: selectedNetwork,
+      })
+      const targetAsset = assetInfo.data.find(asset => asset.address.toLowerCase() === selectedTokenData.tokenAddress?.toLowerCase());
+      if (!targetAsset) {
+        throw new Error('Token info not found');
+      }
+      const decimals = targetAsset.token.decimals;
+
       const amount = parseUnits(transferAmount, decimals);
 
       // Execute the ERC20 transfer
