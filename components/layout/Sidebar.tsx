@@ -261,7 +261,7 @@ export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProp
             
             <Box>
               <Typography color="white" fontWeight={600} variant="subtitle2">
-                WiseAI
+                Gun.ai-Wallet
               </Typography>
               {mounted && isConnected && address ? (
                 <Typography color={alpha('#fff', 0.8)} variant="caption">
