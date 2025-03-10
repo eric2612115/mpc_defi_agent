@@ -10,7 +10,7 @@ import type { CreateWalletResponse } from '../models/CreateWalletResponse';
 import type { ListWalletResponse } from '../models/ListWalletResponse';
 import type { SwapEstimateResponse } from '../models/SwapEstimateResponse';
 import type { SwapEstimateWalletDto } from '../models/SwapEstimateWalletDto';
-import type { SwapHistoryResponse } from '../models/SwapHistoryResponse';
+import type { SwapHistoryResponseDto } from '../models/SwapHistoryResponseDto';
 import type { SwapWalletDto } from '../models/SwapWalletDto';
 import type { SwapWalletResponse } from '../models/SwapWalletResponse';
 import type { WhitelistAddDto } from '../models/WhitelistAddDto';
@@ -124,7 +124,7 @@ export class WalletService {
     chain,
   }: {
     ownerAddress: string,
-    chain?: string | number,
+    chain?: string,
   }): CancelablePromise<ListWalletResponse> {
     return __request(OpenAPI, {
       method: 'GET',
@@ -229,22 +229,28 @@ export class WalletService {
   }
   /**
    * Get swap transaction history
-   * @returns SwapHistoryResponse Swap history retrieved successfully
+   * @returns SwapHistoryResponseDto Swap history retrieved successfully
    * @throws ApiError
    */
   public static walletControllerSwapHistory({
-    chain,
     safeWalletAddress,
+    chain,
   }: {
-    chain: string,
+    /**
+     * Safe wallet address
+     */
     safeWalletAddress: string,
-  }): CancelablePromise<SwapHistoryResponse> {
+    /**
+     * The blockchain network chain ID
+     */
+    chain?: string,
+  }): CancelablePromise<SwapHistoryResponseDto> {
     return __request(OpenAPI, {
       method: 'GET',
       url: '/wallet/swap/history',
       query: {
-        'chain': chain,
         'safeWalletAddress': safeWalletAddress,
+        'chain': chain,
       },
       errors: {
         400: `Bad request`,

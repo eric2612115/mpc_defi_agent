@@ -419,6 +419,12 @@ export default function PortfolioPage() {
     
     try {
       // Use wallet-transaction-history API
+      const walletTransactions = await WalletService.walletControllerSwapHistory({
+        safeWalletAddress: addr,
+      }).then((res) => res.transactions).catch((error) => {
+        console.error('Error fetching transactions:', error);
+        return [];
+      });
       const response = await fetch(`${API_BASE_URL}/api/wallet-transaction-history`, {
         method: 'POST',
         headers: {
@@ -451,8 +457,25 @@ export default function PortfolioPage() {
           details: item.details
         };
       });
+      for(const tx of walletTransactions) {
+        const shortedDetails = tx.details?.substring(0, 20) + '...'; 
+
+        formattedTransactions.push({
+          hash: tx.hash,
+          type: tx.type,
+          from: tx.from,
+          to: tx.to,
+          amount: tx.amount,
+          value: tx.value || tx.amount,
+          timestamp: tx.timestamp,
+          status: tx.status,
+          chain: tx.chain,
+          details: tx.details,
+        })
+      }
+      const sortedTransactions = formattedTransactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
-      setTransactions(formattedTransactions);
+      setTransactions(sortedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       // Use mock data as fallback

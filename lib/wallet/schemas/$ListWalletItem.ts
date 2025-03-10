@@ -12,6 +12,10 @@ export const $ListWalletItem = {
       type: 'string',
       isRequired: true,
     },
+    chainId: {
+      type: 'number',
+      isRequired: true,
+    },
     txHash: {
       type: 'string',
       isRequired: true,
