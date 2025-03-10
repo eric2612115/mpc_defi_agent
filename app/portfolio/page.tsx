@@ -120,10 +120,11 @@ export default function PortfolioPage() {
     if (mounted && isConnected && address) {
       if (walletType === 'personal') {
         fetchPersonalAssets();
+        fetchTransactions(address);
       } else if (selectedMultisigWalletAddress) {
         fetchMultisigAssets();
+        fetchTransactions(selectedMultisigWalletAddress);
       }
-      fetchTransactions();
     }
   }, [mounted, isConnected, address, walletType, selectedMultisigWalletAddress]);
 
@@ -208,8 +209,12 @@ export default function PortfolioPage() {
         
         // Calculate total balance
         const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+        console.log({
+          total,
+          formattedAssets
+        })
+        setTotalBalance(total);
         if (walletType === 'personal') {
-          setTotalBalance(total);
         }
       } catch (error) {
         console.error('Error fetching personal assets:', error);
@@ -347,8 +352,8 @@ export default function PortfolioPage() {
         
         // Calculate total balance
         const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+        setTotalBalance(123);
         if (walletType === 'multisig') {
-          setTotalBalance(total);
         }
       } catch (error) {
         console.error('Error fetching multisig assets:', error);
@@ -407,7 +412,7 @@ export default function PortfolioPage() {
   };
 
   // Fetch transaction history
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (addr: string) => {
     if (!address) return;
     
     setLoadingTransactions(true);
@@ -419,7 +424,7 @@ export default function PortfolioPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ wallet_address: address }),
+        body: JSON.stringify({ wallet_address: addr }),
       });
       
       if (!response.ok) {
