@@ -33,26 +33,20 @@ export async function POST(request: NextRequest) {
     }
     
     const data = await response.json();
-    
-    // Return data with a more consistent format
-    if (data && data.data && Array.isArray(data.data) && data.data.length > 0 && data.data[0].totalValue) {
-      // Return the original format from the backend
-      return NextResponse.json(data);
-    } else {
-      // Return a simplified format that's easier to handle
-      return NextResponse.json({
-        totalValue: data?.data?.[0]?.totalValue || 
-                   data?.totalValue || 
-                   "0"
-      });
-    }
+    return NextResponse.json(data);
     
   } catch (error) {
     console.error('Error proxying to backend:', error);
     
     // For development/testing, you can use this mock data if needed
     return NextResponse.json({
-      totalValue: "651.66"
+      code: "0",
+      msg: "success",
+      data: [
+        {
+          totalValue: "651.664569749136626390233713980717998488"
+        }
+      ]
     }, { status: 200 });
   }
 }

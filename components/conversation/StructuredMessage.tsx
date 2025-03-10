@@ -22,7 +22,7 @@ export interface StructuredMessage {
   sender: 'user' | 'agent' | 'system';
   text: string;
   timestamp: string;
-  message_type?: 'normal' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification' | 'thinking';
+  message_type?: 'normal' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification' | 'thinking' | undefined | null;
   status?: 'pending' | 'completed' | 'error';
   action?: {
     type: 'confirm' | 'info' | 'need_user_signature' | 'completed' | 'rejected' | 'submitted';
@@ -466,7 +466,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         {renderMessageTypeLabel()}
         
         {/* For thinking messages, we can render differently to normal messages */}
-        {message.message_type === 'thinking' ? (
+        {(message as any)?.message_type === 'thinking' ? (
           renderThinkingContent()
         ) : (
           renderFormattedText()
