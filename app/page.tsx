@@ -24,6 +24,7 @@ import {
 import { useAccount } from 'wagmi';
 import MainLayout from '@/components/layout/MainLayout';
 import StructuredMessage from '@/components/conversation/StructuredMessage';
+import ThinkingAccordion from '@/components/conversation/ThinkingAccordion'; // Import the new component
 import type { StructuredMessage as StructuredMessageType } from '@/components/conversation/StructuredMessage';
 
 import apiClient from '@/lib/apiClient';
@@ -37,7 +38,12 @@ export default function HomePage() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<StructuredMessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [thinkingMessage, setThinkingMessage] = useState<StructuredMessageType | null>(null);
+  
+  // New state for thinking messages
+  const [thinkingMessages, setThinkingMessages] = useState<StructuredMessageType[]>([]);
+  const [currentThinkingStep, setCurrentThinkingStep] = useState<number>(0);
+  const [totalThinkingSteps, setTotalThinkingSteps] = useState<number>(0);
+  
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -56,7 +62,7 @@ export default function HomePage() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, thinkingMessage]);
+  }, [messages, thinkingMessages]);
 
   // Check agent status and load previous messages
   useEffect(() => {
@@ -172,33 +178,43 @@ export default function HomePage() {
             // Error messages
             setErrorMessage(data.text);
             setIsTyping(false);
-            setThinkingMessage(null);
+            setThinkingMessages([]); // Clear thinking messages on error
             setMessages(prev => [...prev, safeData]);
             break;
               
           case 'thinking':
-            // Instead of adding a new message, update the thinking message
             setIsTyping(true);
-            setThinkingMessage(safeData);
+            setThinkingMessages(prev => [...prev, safeData]);
+            console.log("get thinking msg:", data);
+            // 同時添加到主消息列表，但標記為思考類型
+            const thinkingDisplayMessage = {
+              ...safeData,
+              id: `thinking-${Date.now()}`, // 確保ID唯一
+              thinking_display: true
+            };
+            setMessages(prev => [...prev, thinkingDisplayMessage]);
+
+            setIsTyping(true);
+            setThinkingMessages(prev => [...prev, safeData]);
             break;
               
           case 'tool_call':
-            // Tool usage messages - update thinking message to show tool usage
+            // Tool usage messages - add to thinking collection
             setIsTyping(true);
-            setThinkingMessage(safeData);
+            setThinkingMessages(prev => [...prev, safeData]);
             break;
               
           case 'transaction':
             // Transaction related messages
             setIsTyping(false);
-            setThinkingMessage(null);
+            // Keep thinking messages but stop showing "typing" indicator
             setMessages(prev => [...prev, safeData]);
             break;
               
           case 'normal':
             // Regular messages from the AI
             setIsTyping(false);
-            setThinkingMessage(null);
+            // Keep thinking messages in the state but stop showing "typing" indicator
               
             // Check if we need to update the message with an action
             const messageWithAction = {
@@ -214,7 +230,6 @@ export default function HomePage() {
           default:
             // Handle any other message types
             setIsTyping(false);
-            setThinkingMessage(null);
             setMessages(prev => [...prev, safeData]);
           }
         } catch (e) {
@@ -336,15 +351,10 @@ export default function HomePage() {
     setInput('');
     setIsTyping(true);
     
-    // Create initial thinking message
-    const initialThinking: StructuredMessageType = {
-      id: 'thinking-' + Date.now().toString(),
-      sender: 'agent',
-      text: "Analyzing your request...",
-      timestamp: new Date().toISOString(),
-      message_type: 'thinking',
-    };
-    setThinkingMessage(initialThinking);
+    // Clear the previous thinking messages when sending a new message
+    setThinkingMessages([]);
+    setCurrentThinkingStep(0);
+    setTotalThinkingSteps(0);
   
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       websocket.send(JSON.stringify({ query: input }));
@@ -457,14 +467,6 @@ export default function HomePage() {
     setErrorMessage(null);
   };
 
-  // Example suggestions for new users
-  const suggestions = [
-    "Buy 1000 USDC worth of the top 5 tokens on Base chain",
-    "What are the trending tokens today?",
-    "Analyze my portfolio and recommend rebalancing",
-    "Help me diversify with 5000 USDC across different sectors"
-  ];
-
   // Helper function
   const formatTimestamp = (timestamp: any): string => {
     if (!timestamp) {
@@ -478,6 +480,14 @@ export default function HomePage() {
       return new Date().toISOString();
     }
   };
+
+  // Example suggestions for new users
+  const suggestions = [
+    "Buy 1000 USDC worth of the top 5 tokens on Base chain",
+    "What are the trending tokens today?",
+    "Analyze my portfolio and recommend rebalancing",
+    "Help me diversify with 5000 USDC across different sectors"
+  ];
 
   // Don't render anything while first loading to prevent flicker
   if (isFirstLoad && isConnected) {
@@ -635,8 +645,17 @@ export default function HomePage() {
               />
             ))}
 
-            {/* AI thinking indicator - only show when thinking */}
-            {isTyping && thinkingMessage && (
+            {/* NEW: Thinking Accordion Component - only show if there are thinking messages */}
+            {thinkingMessages.length > 0 && (
+              <ThinkingAccordion 
+                currentStep={currentThinkingStep}
+                thinkingMessages={thinkingMessages}
+                totalSteps={totalThinkingSteps}
+              />
+            )}
+
+            {/* AI thinking indicator - only show basic indicator when no detailed thinking messages */}
+            {isTyping && thinkingMessages.length === 0 && (
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, ml: 2 }}>
                 <Box
                   sx={{ 
@@ -666,34 +685,9 @@ export default function HomePage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <CircularProgress size={16} sx={{ mr: 1.5 }} />
                     <Typography fontWeight={500} variant="body2">
-                      {thinkingMessage.message_type === 'tool_call' 
-                        ? 'Using tools to analyze your request...' 
-                        : 'Thinking...'}
+                      Thinking...
                     </Typography>
                   </Box>
-                  
-                  <Typography 
-                    color="text.secondary" 
-                    sx={{ 
-                      fontSize: '0.9rem',
-                      opacity: 0.8
-                    }} 
-                    variant="body2"
-                  >
-                    {thinkingMessage.text}
-                  </Typography>
-                  
-                  <Typography
-                    sx={{
-                      display: 'block',
-                      mt: 1,
-                      textAlign: 'left',
-                      opacity: 0.7,
-                    }}
-                    variant="caption"
-                  >
-                    {new Date(thinkingMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Typography>
                 </Box>
               </Box>
             )}
