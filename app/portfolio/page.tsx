@@ -515,7 +515,7 @@ export default function PortfolioPage() {
     Promise.all([
       refetchWallets(),
       walletType === 'personal' ? fetchPersonalAssets() : fetchMultisigAssets(),
-      fetchTransactions()
+      fetchTransactions(address || '')
     ]).finally(() => {
       setRefreshing(false);
       setSuccessMessage('Assets refreshed successfully');
