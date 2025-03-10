@@ -10,6 +10,7 @@ import Sidebar from './Sidebar';
 import ConnectWalletPrompt from '../common/ConnectWalletPrompt';
 import CreateAgentPrompt from '../common/CreateAgentPrompt';
 import apiClient from '../../lib/apiClient';
+import { WalletService } from '@/lib/wallet';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -82,6 +83,12 @@ export default function MainLayout({
     try {
       setIsCreatingAgent(true);
       console.log("Creating agent for wallet:", address);
+      
+      await WalletService.walletControllerCreateAi({
+        requestBody: {
+          ownerAddress: address,
+        }
+      })
       
       const response = await fetch('/api/create-agent', {
         method: 'POST',
@@ -157,7 +164,7 @@ export default function MainLayout({
           <MobileHeader hasAgent={false} isWalletConnected={true} /> : 
           <Header hasAgent={false} isWalletConnected={true} />
         }
-        <CreateAgentPrompt onCreateAgent={handleCreateAgent} isCreating={isCreatingAgent} />
+        <CreateAgentPrompt isCreating={isCreatingAgent} onCreateAgent={handleCreateAgent} />
       </>
     );
   }

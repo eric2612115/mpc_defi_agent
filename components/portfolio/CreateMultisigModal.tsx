@@ -34,6 +34,7 @@ const CreateMultisigModal: React.FC<CreateMultisigModalProps> = ({
   const { 
     data: aiInfo, 
     isLoading: isLoadingAi, 
+    refetch: refetchAiInfo,
     error: aiError 
   } = useQueryAiInfo({
     ownerAddress: address || '',
@@ -48,6 +49,23 @@ const CreateMultisigModal: React.FC<CreateMultisigModalProps> = ({
       setError(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!aiInfo?.aiAddress) {
+      if(address) {
+        WalletService.walletControllerCreateAi({
+          requestBody: {
+            ownerAddress: address,
+          }
+        }).then((result) => {
+          refetchAiInfo();
+          console.log("AI address created:", result);
+        }).catch((err) => {
+          console.error("Error creating AI address:", err);
+        });
+      }
+    }
+  }, [address, aiInfo, refetchAiInfo]);
 
   const handleThresholdChange = (event: SelectChangeEvent) => {
     setThreshold(event.target.value);

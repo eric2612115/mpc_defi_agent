@@ -21,6 +21,7 @@ import DepositDialog from '@/components/portfolio/DepositDialog';
 import type { Asset } from '@/components/portfolio/AssetTable';
 import type { Transaction } from '@/components/portfolio/TransactionHistory';
 import { useQueryWallets } from '@/hooks/useQueryWallets';
+import { AssetService, WalletService } from '@/lib/wallet';
 // import { OdosSwapWidget } from "odos-widgets";
 // import {
 //   defaultInputTokenMap,
@@ -130,93 +131,133 @@ export default function PortfolioPage() {
     if (!address) return;
     
     setLoadingAssets(true);
-    
-    try {
-      // Use total-balance-detail API
-      const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wallet_address: address }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Convert API data to Asset format
-      const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
-        id: index.toString(),
-        name: item.symbol, // Use symbol as name since API doesn't provide name
-        symbol: item.symbol,
-        balance: parseFloat(item.balance) || 0,
-        price: parseFloat(item.tokenPrice) || 0,
-        value: parseFloat(item.value) || 0,
-        change24h: 0, // API doesn't provide 24h change, default to 0
-        chain: item.chain,
-        chainIndex: item.chainIndex,
-        tokenAddress: item.tokenAddress,
-        decimals: item.decimals,
-        logoUrl: item.icon || undefined,
-      }));
-      
-      setPersonalAssets(formattedAssets);
-      
-      // Calculate total balance
-      const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
-      if (walletType === 'personal') {
-        setTotalBalance(total);
-      }
-    } catch (error) {
-      console.error('Error fetching personal assets:', error);
-      // Use mock data as fallback
-      setPersonalAssets([
-        { 
-          id: '1', 
-          name: 'Ethereum', 
-          symbol: 'ETH', 
-          balance: 2.5, 
-          price: 3500, 
-          value: 8750, 
-          change24h: 1.2, 
-          chain: 'Ethereum',
-          tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
-          decimals: 18
-        },
-        { 
-          id: '2', 
-          name: 'USD Coin', 
-          symbol: 'USDC', 
-          balance: 5000, 
-          price: 1, 
-          value: 5000, 
-          change24h: 0, 
-          chain: 'Ethereum',
-          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
-          decimals: 6
-        },
-        { 
-          id: '3', 
-          name: 'ChainLink', 
-          symbol: 'LINK', 
-          balance: 100, 
-          price: 15, 
-          value: 1500, 
-          change24h: -0.5, 
-          chain: 'Ethereum',
-          tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
-          decimals: 18
+    if(chainId === 146) {
+      try {
+        const sonicBalance = await WalletService.walletControllerBalance({
+          owner: address,
+        });
+        const sonicInfoAndPrice = await AssetService.assetControllerGetAssetsAndPriceList({
+          chainId: chainId.toString(),
+        });
+
+        const sonicAssets: Asset[] = [];
+        for(const item of sonicBalance.list) {
+          const assetInfo = sonicInfoAndPrice.assets.find((asset) => asset.symbol === item.symbol);
+          if (!assetInfo) {
+            continue;
+          }
+          sonicAssets.push({
+            id: item.symbol,
+            name: assetInfo.name,
+            symbol: assetInfo.symbol,
+            balance: parseFloat(item.formattedBalance) || 0,
+            price: item.price,
+            value: item.usdValue,
+            change24h: 0,
+            logoUrl: '',
+            chain: 'Sonic',
+            chainIndex: '146',
+            tokenAddress: assetInfo.address,
+            decimals: assetInfo.decimals,
+          })
         }
-      ]);
-      
-      if (walletType === 'personal') {
-        setTotalBalance(15250); // Mock total balance
+        setPersonalAssets(sonicAssets.filter((asset) => asset.balance > 0));
+        setTotalBalance(sonicAssets.reduce((sum, asset) => sum + asset.value, 0));
+      } catch (error) {
+        console.error("Error fetching sonic balance:", error);
+        setPersonalAssets([]);
+      } finally {
+        setLoadingAssets(false);
       }
-    } finally {
-      setLoadingAssets(false);
+
+    } else {
+      try {
+        // Use total-balance-detail API
+        const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ wallet_address: address }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Convert API data to Asset format
+        const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
+          id: index.toString(),
+          name: item.symbol, // Use symbol as name since API doesn't provide name
+          symbol: item.symbol,
+          balance: parseFloat(item.balance) || 0,
+          price: parseFloat(item.tokenPrice) || 0,
+          value: parseFloat(item.value) || 0,
+          change24h: 0, // API doesn't provide 24h change, default to 0
+          chain: item.chain,
+          chainIndex: item.chainIndex,
+          tokenAddress: item.tokenAddress,
+          decimals: item.decimals,
+          logoUrl: item.icon || undefined,
+        }));
+        
+        setPersonalAssets(formattedAssets);
+        
+        // Calculate total balance
+        const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+        if (walletType === 'personal') {
+          setTotalBalance(total);
+        }
+      } catch (error) {
+        console.error('Error fetching personal assets:', error);
+        // Use mock data as fallback
+        setPersonalAssets([
+          { 
+            id: '1', 
+            name: 'Ethereum', 
+            symbol: 'ETH', 
+            balance: 2.5, 
+            price: 3500, 
+            value: 8750, 
+            change24h: 1.2, 
+            chain: 'Ethereum',
+            tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
+            decimals: 18
+          },
+          { 
+            id: '2', 
+            name: 'USD Coin', 
+            symbol: 'USDC', 
+            balance: 5000, 
+            price: 1, 
+            value: 5000, 
+            change24h: 0, 
+            chain: 'Ethereum',
+            tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
+            decimals: 6
+          },
+          { 
+            id: '3', 
+            name: 'ChainLink', 
+            symbol: 'LINK', 
+            balance: 100, 
+            price: 15, 
+            value: 1500, 
+            change24h: -0.5, 
+            chain: 'Ethereum',
+            tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
+            decimals: 18
+          }
+        ]);
+        
+        if (walletType === 'personal') {
+          setTotalBalance(15250); // Mock total balance
+        }
+      } finally {
+        setLoadingAssets(false);
+      }
     }
   };
 
@@ -225,102 +266,143 @@ export default function PortfolioPage() {
     if (!selectedMultisigWalletAddress) return;
     
     setLoadingAssets(true);
-    
-    try {
-      // Use the selected multisig wallet address
-      const currentMultisigAddress = selectedMultisigWalletAddress;
-      
-      // Use the same API endpoint with multisig address
-      const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wallet_address: currentMultisigAddress }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Convert API data to Asset format with random whitelist status (should come from API)
-      const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
-        id: index.toString(),
-        name: item.symbol,
-        symbol: item.symbol,
-        balance: parseFloat(item.balance) || 0,
-        price: parseFloat(item.tokenPrice) || 0,
-        value: parseFloat(item.value) || 0,
-        change24h: 0,
-        chain: item.chain,
-        chainIndex: item.chainIndex,
-        tokenAddress: item.tokenAddress,
-        decimals: item.decimals || 18, // Default to 18 if not provided
-        logoUrl: item.icon || undefined,
-        // Simulate whitelist status - should come from API
-        isWhitelisted: Math.random() > 0.3 // 70% chance of being whitelisted
-      }));
-      
-      setMultisigAssets(formattedAssets);
-      
-      // Calculate total balance
-      const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
-      if (walletType === 'multisig') {
-        setTotalBalance(total);
-      }
-    } catch (error) {
-      console.error('Error fetching multisig assets:', error);
-      // Use mock data as fallback
-      setMultisigAssets([
-        { 
-          id: '1', 
-          name: 'Ethereum', 
-          symbol: 'ETH', 
-          balance: 1.8, 
-          price: 3500, 
-          value: 6300, 
-          change24h: 1.2, 
-          chain: 'Ethereum', 
-          isWhitelisted: true,
-          tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
-          decimals: 18
-        },
-        { 
-          id: '2', 
-          name: 'USD Coin', 
-          symbol: 'USDC', 
-          balance: 10000, 
-          price: 1, 
-          value: 10000, 
-          change24h: 0, 
-          chain: 'Ethereum', 
-          isWhitelisted: true,
-          tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
-          decimals: 6
-        },
-        { 
-          id: '3', 
-          name: 'ChainLink', 
-          symbol: 'LINK', 
-          balance: 80, 
-          price: 15, 
-          value: 1200, 
-          change24h: -0.5, 
-          chain: 'Ethereum', 
-          isWhitelisted: false,
-          tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
-          decimals: 18
+    if(chainId === 146) {
+      try {
+        const sonicBalance = await WalletService.walletControllerBalance({
+          owner: selectedMultisigWalletAddress,
+        });
+        const sonicInfoAndPrice = await AssetService.assetControllerGetAssetsAndPriceList({
+          chainId: chainId.toString(),
+        });
+
+        const sonicAssets: Asset[] = [];
+        for(const item of sonicBalance.list) {
+          const assetInfo = sonicInfoAndPrice.assets.find((asset) => asset.symbol === item.symbol);
+          if (!assetInfo) {
+            continue;
+          }
+          sonicAssets.push({
+            id: item.symbol,
+            name: assetInfo.name,
+            symbol: assetInfo.symbol,
+            balance: parseFloat(item.formattedBalance) || 0,
+            price: item.price,
+            value: item.usdValue,
+            change24h: 0,
+            logoUrl: '',
+            chain: 'Sonic',
+            chainIndex: '146',
+            tokenAddress: assetInfo.address,
+            decimals: assetInfo.decimals,
+          })
         }
-      ]);
-      
-      if (walletType === 'multisig') {
-        setTotalBalance(17500); // Mock total balance
+        setMultisigAssets(sonicAssets.filter((asset) => asset.balance > 0));
+      } catch (error) {
+        console.error("Error fetching sonic balance:", error);
+        setMultisigAssets([]);
+      } finally {
+        setLoadingAssets(false);
       }
-    } finally {
-      setLoadingAssets(false);
+
+    } else {
+      try {
+        // Use the selected multisig wallet address
+        const currentMultisigAddress = selectedMultisigWalletAddress;
+        
+        // Use the same API endpoint with multisig address
+        const response = await fetch(`${API_BASE_URL}/api/total-balance-detail`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ wallet_address: currentMultisigAddress }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Convert API data to Asset format with random whitelist status (should come from API)
+        const formattedAssets: Asset[] = data.map((item: any, index: number) => ({
+          id: index.toString(),
+          name: item.symbol,
+          symbol: item.symbol,
+          balance: parseFloat(item.balance) || 0,
+          price: parseFloat(item.tokenPrice) || 0,
+          value: parseFloat(item.value) || 0,
+          change24h: 0,
+          chain: item.chain,
+          chainIndex: item.chainIndex,
+          tokenAddress: item.tokenAddress,
+          decimals: item.decimals || 18, // Default to 18 if not provided
+          logoUrl: item.icon || undefined,
+          // Simulate whitelist status - should come from API
+          isWhitelisted: Math.random() > 0.3 // 70% chance of being whitelisted
+        }));
+        
+        setMultisigAssets(formattedAssets);
+        
+        // Calculate total balance
+        const total = formattedAssets.reduce((sum, asset) => sum + asset.value, 0);
+        if (walletType === 'multisig') {
+          setTotalBalance(total);
+        }
+      } catch (error) {
+        console.error('Error fetching multisig assets:', error);
+        // Use mock data as fallback
+        setMultisigAssets([
+          { 
+            id: '1', 
+            name: 'Ethereum', 
+            symbol: 'ETH', 
+            balance: 1.8, 
+            price: 3500, 
+            value: 6300, 
+            change24h: 1.2, 
+            chain: 'Ethereum', 
+            isWhitelisted: true,
+            tokenAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH contract
+            decimals: 18
+          },
+          { 
+            id: '2', 
+            name: 'USD Coin', 
+            symbol: 'USDC', 
+            balance: 10000, 
+            price: 1, 
+            value: 10000, 
+            change24h: 0, 
+            chain: 'Ethereum', 
+            isWhitelisted: true,
+            tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract
+            decimals: 6
+          },
+          { 
+            id: '3', 
+            name: 'ChainLink', 
+            symbol: 'LINK', 
+            balance: 80, 
+            price: 15, 
+            value: 1200, 
+            change24h: -0.5, 
+            chain: 'Ethereum', 
+            isWhitelisted: false,
+            tokenAddress: '0x514910771AF9Ca656af840dff83E8264EcF986CA', // LINK contract
+            decimals: 18
+          }
+        ]);
+        
+        if (walletType === 'multisig') {
+          setTotalBalance(17500); // Mock total balance
+        }
+      } finally {
+        setLoadingAssets(false);
+      }
+
     }
+    
   };
 
   // Fetch transaction history
