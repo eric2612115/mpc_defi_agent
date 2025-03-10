@@ -22,6 +22,7 @@ import type { Asset } from '@/components/portfolio/AssetTable';
 import type { Transaction } from '@/components/portfolio/TransactionHistory';
 import { useQueryWallets } from '@/hooks/useQueryWallets';
 import { AssetService, WalletService } from '@/lib/wallet';
+import { useWithdrawFromSafe } from '@/hooks/useWithdrawFromSafe';
 // import { OdosSwapWidget } from "odos-widgets";
 // import {
 //   defaultInputTokenMap,
@@ -558,23 +559,47 @@ export default function PortfolioPage() {
     acc[asset.symbol] = asset.balance;
     return acc;
   }, {} as {[key: string]: number});
+
+  
+  const withdrawFromSafe = useWithdrawFromSafe();
   
   // Handle withdraw action on asset
-  const handleMultisigWithdraw = (asset: Asset) => {
+  const handleMultisigWithdraw = async (asset: Asset) => {
     console.log('Withdraw from multisig wallet:', asset);
-    
+    const tokenAddress = asset.tokenAddress || null;
+    if(!tokenAddress) {
+      return;
+    }
+    // const decimals = asset.decimals || 18;
     // Get the selected wallet name
     const selectedWallet = relatedMultisigWallets.find(wallet => wallet.multisig_address === selectedMultisigWalletAddress);
     const walletName = selectedWallet?.name || 'Multi-Signature wallet';
+    const assetInfo = await AssetService.assetControllerGetAssetsList({
+      chainId: chainId.toString()
+    })
+    const targetAsset = assetInfo.data.find(asset => asset.address.toLowerCase() === tokenAddress?.toLowerCase());
+    if (!targetAsset) {
+      throw new Error('Token info not found');
+    }
+    const decimals = targetAsset.token.decimals;
+
+    await withdrawFromSafe(
+      selectedMultisigWalletAddress,
+      tokenAddress,
+      asset.balance.toString(),
+      address,
+      decimals,
+    )
+    setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol} from ${walletName}`);
     
     // Simulate API call
-    if (asset.isWhitelisted) {
-      // Direct withdrawal
-      setSuccessMessage(`Withdrawing ${asset.balance} ${asset.symbol} from ${walletName}`);
-    } else {
-      // Additional approval required
-      setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol} from ${walletName}. Additional approval required for non-whitelisted assets.`);
-    }
+    // if (asset.isWhitelisted) {
+    //   // Direct withdrawal
+    //   setSuccessMessage(`Withdrawing ${asset.balance} ${asset.symbol} from ${walletName}`);
+    // } else {
+    //   // Additional approval required
+    //   setSuccessMessage(`Withdrawal request submitted for ${asset.balance} ${asset.symbol} from ${walletName}. Additional approval required for non-whitelisted assets.`);
+    // }
     
     setSuccessAlert(true);
     setTimeout(() => setSuccessAlert(false), 5000);
