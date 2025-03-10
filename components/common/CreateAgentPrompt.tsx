@@ -30,6 +30,8 @@ import {
   SmartToy as SmartToyIcon,
   AccountBalanceWallet as WalletIcon
 } from '@mui/icons-material';
+import { WalletService } from '@/lib/wallet';
+import { useAccount } from 'wagmi';
 
 interface CreateAgentPromptProps {
   onCreateAgent: () => Promise<boolean>;
@@ -43,6 +45,7 @@ export default function CreateAgentPrompt({ onCreateAgent, isCreating = false }:
   const [agentAddress, setAgentAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creationComplete, setCreationComplete] = useState(false);
+  const { address } = useAccount();
 
   // When isCreating is set from the parent, update our local state
   useEffect(() => {
