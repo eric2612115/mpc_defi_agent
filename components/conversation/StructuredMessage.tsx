@@ -1,25 +1,28 @@
 // components/conversation/StructuredMessage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  alpha, Avatar, Box, Button, Chip, CircularProgress, Paper,
+  alpha, Avatar, Box, Button, Chip, CircularProgress, Collapse, IconButton, Paper,
   Typography, useTheme
 } from '@mui/material';
 import {
   SmartToy as AgentIcon,
   Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
+  KeyboardArrowUp as ExpandLessIcon,
+  KeyboardArrowDown as ExpandMoreIcon,
   Info as InfoIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { customStyles } from '@/lib/theme';
 
-// 定義結構化消息接口
+// Define structured message interface
 export interface StructuredMessage {
   id: string;
   sender: 'user' | 'agent' | 'system';
   text: string;
   timestamp: string;
-  message_type?: 'normal' | 'thinking' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification';
+  message_type?: 'normal' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification' | 'thinking';
   status?: 'pending' | 'completed' | 'error';
   action?: {
     type: 'confirm' | 'info' | 'need_user_signature' | 'completed' | 'rejected' | 'submitted';
@@ -28,7 +31,7 @@ export interface StructuredMessage {
     tx_hash?: string;
   };
   
-  // 擴展字段 - 結構化數據
+  // Extended fields for structured data
   summary?: {
     recommendation: string;
     source_token: string;
@@ -43,11 +46,22 @@ export interface StructuredMessage {
     }>
   };
   
-  phase?: string; // 用於thinking類型消息
+  // For thinking-type messages
+  phase?: string;
+  progress?: {
+    current_step?: number;
+    total_steps?: number;
+    step_name?: string;
+  };
+  
+  // For tool_call type messages
   tool?: {
     name: string;
     params: Record<string, any>;
-  }; // 用於tool_call類型消息
+  };
+  
+  // Optional flag for thinking display
+  thinking_display?: boolean;
 }
 
 interface StructuredMessageProps {
@@ -63,7 +77,43 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
 }) => {
   const theme = useTheme();
   
-  // 根據發送者獲取頭像
+  // For expandable thinking content if needed
+  const [showDetails, setShowDetails] = useState(false);
+  
+  // 首先檢查是否為思考類型消息，如果是則使用特殊渲染
+  if (message.thinking_display || message.message_type === 'thinking') {
+    return (
+      <Box
+        sx={{ 
+          p: 2, 
+          my: 1, 
+          bgcolor: alpha(theme.palette.primary.main, 0.05), 
+          borderRadius: 2,
+          borderLeft: `3px solid ${theme.palette.primary.main}`,
+        }}
+      >
+        <Typography variant="subtitle2">Thinking Processing:</Typography>
+        <Typography sx={{ fontStyle: 'italic' }} variant="body2">
+          {message.text}
+        </Typography>
+        
+        {/* 顯示時間戳 */}
+        <Typography
+          sx={{
+            display: 'block',
+            mt: 1,
+            textAlign: 'right',
+            opacity: 0.7,
+          }}
+          variant="caption"
+        >
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Typography>
+      </Box>
+    );
+  }
+  
+  // Get avatar based on sender
   const getAvatar = () => {
     if (message.sender === 'user') {
       return (
@@ -101,13 +151,13 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
             height: 38
           }}
         >
-          <AgentIcon />
+          {message.message_type === 'thinking' ? <PsychologyIcon /> : <AgentIcon />}
         </Avatar>
       );
     }
   };
   
-  // 根據消息類型獲取氣泡樣式
+  // Get message bubble style based on sender
   const getBubbleStyle = () => {
     if (message.sender === 'user') {
       return customStyles.chatBubbles.user;
@@ -123,7 +173,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     }
   };
   
-  // 消息類型標籤
+  // Message type label chip
   const renderMessageTypeLabel = () => {
     switch (message.message_type) {
     case 'thinking':
@@ -139,26 +189,26 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     }
   };
   
-  // 處理文本格式化 (支持段落和列表)
+  // Handle text formatting (supporting paragraphs and lists)
   const renderFormattedText = () => {
     if (!message.text) return null;
     
-    // 按雙換行符分割段落
+    // Split by double newlines for paragraphs
     const paragraphs = message.text.split('\n\n');
     
     return (
       <>
         {paragraphs.map((paragraph, index) => {
-          // 檢查是否包含列表項 (以- 或*開頭的行)
+          // Check if paragraph contains list items (lines starting with - or *)
           if (paragraph.includes('\n- ') || paragraph.includes('\n* ')) {
-            // 拆分為普通文本和列表項
+            // Split into normal text and list items
             const parts = paragraph.split(/\n(?=[-*] )/);
             
             return (
               <Box key={index} sx={{ mb: 1.5 }}>
                 {parts.map((part, pIndex) => {
                   if (part.startsWith('- ') || part.startsWith('* ')) {
-                    // 列表項
+                    // List item
                     return (
                       <Box key={`item-${pIndex}`} sx={{ display: 'flex', ml: 1, mb: 0.5 }}>
                         <Typography sx={{ mr: 1 }} variant="body1">•</Typography>
@@ -166,7 +216,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
                       </Box>
                     );
                   } else {
-                    // 普通文本
+                    // Normal text
                     return (
                       <Typography key={`text-${pIndex}`} sx={{ mb: 1 }} variant="body1">
                         {part}
@@ -177,7 +227,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
               </Box>
             );
           } else {
-            // 普通段落，保留單個換行符
+            // Regular paragraph, preserving single line breaks
             return (
               <Typography key={index} sx={{ mb: 1.5, whiteSpace: 'pre-line' }} variant="body1">
                 {paragraph}
@@ -189,7 +239,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     );
   };
   
-  // 投資組合視覺化 (如果有)
+  // Portfolio visualization (if available)
   const renderPortfolio = () => {
     if (!message.summary?.portfolio || message.summary.portfolio.length === 0) {
       return null;
@@ -197,7 +247,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     
     return (
       <Box sx={{ mt: 2, mb: 2, p: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), borderRadius: 1 }}>
-        <Typography gutterBottom variant="subtitle2">投資組合分配:</Typography>
+        <Typography gutterBottom variant="subtitle2">Portfolio Allocation:</Typography>
         
         {message.summary.portfolio.map((item, index) => (
           <Box key={index} sx={{ mb: 1.5 }}>
@@ -206,7 +256,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
               <Typography fontWeight={500} variant="body2">{item.allocation}%</Typography>
             </Box>
             
-            {/* 分配比例條 */}
+            {/* Allocation bar */}
             <Box sx={{ width: '100%', height: 6, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 3 }}>
               <Box 
                 sx={{ 
@@ -219,7 +269,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
             </Box>
             
             <Typography color="text.secondary" variant="caption">
-              安全評分: {item.security_score}
+              Security Score: {item.security_score}
             </Typography>
           </Box>
         ))}
@@ -227,7 +277,73 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     );
   };
   
-  // 操作按鈕
+  // Special handling for thinking-type messages
+  const renderThinkingContent = () => {
+    if (message.message_type !== 'thinking') return null;
+    
+    return (
+      <Box sx={{ mt: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography color="text.secondary" variant="body2">
+            {message.phase || 'AI Analysis in Progress'}
+          </Typography>
+          
+          <IconButton onClick={() => setShowDetails(!showDetails)} size="small">
+            {showDetails ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          </IconButton>
+        </Box>
+        
+        <Collapse in={showDetails}>
+          <Typography 
+            color="text.secondary"
+            sx={{ 
+              whiteSpace: 'pre-line',
+              p: 1.5,
+              backgroundColor: alpha(theme.palette.background.default, 0.3),
+              borderRadius: 1,
+              fontSize: '0.9rem'
+            }} 
+            variant="body2"
+          >
+            {message.text}
+          </Typography>
+        </Collapse>
+        
+        {/* Progress indicator if available */}
+        {message.progress && message.progress.current_step && message.progress.total_steps && (
+          <Box sx={{ mt: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography color="text.secondary" variant="caption">
+                {message.progress.step_name || `Step ${message.progress.current_step} of ${message.progress.total_steps}`}
+              </Typography>
+              <Typography color="text.secondary" variant="caption">
+                {Math.round((message.progress.current_step / message.progress.total_steps) * 100)}%
+              </Typography>
+            </Box>
+            <Box 
+              sx={{ 
+                width: '100%', 
+                height: 4, 
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                borderRadius: 2,
+                overflow: 'hidden'
+              }}
+            >
+              <Box 
+                sx={{ 
+                  height: '100%', 
+                  width: `${(message.progress.current_step / message.progress.total_steps) * 100}%`, 
+                  bgcolor: theme.palette.primary.main,
+                }} 
+              />
+            </Box>
+          </Box>
+        )}
+      </Box>
+    );
+  };
+  
+  // Action buttons
   const renderActions = () => {
     if (!message.action) return null;
     
@@ -295,7 +411,7 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     );
   };
   
-  // 狀態指示器 (對於交易狀態等)
+  // Status indicator (for transaction states)
   const renderStatus = () => {
     if (!message.status) return null;
     
@@ -316,8 +432,8 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         {message.status === 'completed' && <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />}
         {message.status === 'error' && <CancelIcon fontSize="small" sx={{ mr: 1 }} />}
         <Typography variant="caption">
-          {message.status === 'pending' ? '處理中...' :
-            message.status === 'completed' ? '已完成' : '失敗'}
+          {message.status === 'pending' ? 'Processing...' :
+            message.status === 'completed' ? 'Completed' : 'Failed'}
         </Typography>
       </Box>
     );
@@ -348,7 +464,14 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
         }}
       >
         {renderMessageTypeLabel()}
-        {renderFormattedText()}
+        
+        {/* For thinking messages, we can render differently to normal messages */}
+        {message.message_type === 'thinking' ? (
+          renderThinkingContent()
+        ) : (
+          renderFormattedText()
+        )}
+        
         {renderPortfolio()}
         {renderStatus()}
         {renderActions()}
