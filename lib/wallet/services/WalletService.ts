@@ -124,7 +124,7 @@ export class WalletService {
     chain,
   }: {
     ownerAddress: string,
-    chain?: string,
+    chain?: string | number,
   }): CancelablePromise<ListWalletResponse> {
     return __request(OpenAPI, {
       method: 'GET',
