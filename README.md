@@ -12,7 +12,7 @@ An AI-powered cryptocurrency trading assistant built on Web3, providing natural 
 
     ```
     # API Configuration
-    NEXT_PUBLIC_API_URL=[http://0.0.0.0:8000](http://0.0.0.0:8000)
+    NEXT_PUBLIC_API_URL=[http://0.0.0.0:7788](http://0.0.0.0:7788)
     NEXT_PUBLIC_WS_URL=ws://0.0.0.0:8000/ws
 
     # Development Mode Configuration

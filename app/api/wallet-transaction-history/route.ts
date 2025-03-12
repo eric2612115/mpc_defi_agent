@@ -15,12 +15,11 @@ export async function POST(request: NextRequest) {
     
     // Make a request to the backend API
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
-    const response = await fetch(`${API_BASE_URL}/api/wallet-transaction-history`, {
-      method: 'POST',
+    const response = await fetch(`${API_BASE_URL}/api/wallet-transaction-history?${wallet_address}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({"wallet_address": wallet_address})
+      }
     });
     
     if (!response.ok) {

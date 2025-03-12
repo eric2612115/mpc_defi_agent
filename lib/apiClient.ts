@@ -10,10 +10,6 @@ interface ApiResponse<T> {
   status: number;
 }
   
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
-// Only use mock data in development when specifically enabled
-const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || false;
-  
 /**
  * Check if a user has an agent
  */

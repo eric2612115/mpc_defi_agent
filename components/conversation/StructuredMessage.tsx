@@ -14,6 +14,7 @@ import {
   Person as PersonIcon,
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown'; // Import the Markdown parser
 import { customStyles } from '@/lib/theme';
 
 // Define structured message interface
@@ -22,7 +23,7 @@ export interface StructuredMessage {
   sender: 'user' | 'agent' | 'system';
   text: string;
   timestamp: string;
-  message_type?: 'normal' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification' | 'thinking' | undefined | null;
+  message_type?: "thinking"| 'normal' | 'status' | 'tool_call' | 'transaction' | 'error' | 'clarification' | 'thinking' | undefined | null;
   status?: 'pending' | 'completed' | 'error';
   action?: {
     type: 'confirm' | 'info' | 'need_user_signature' | 'completed' | 'rejected' | 'submitted';
@@ -189,53 +190,57 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
     }
   };
   
-  // Handle text formatting (supporting paragraphs and lists)
-  const renderFormattedText = () => {
+  // New function to render Markdown text
+  const renderMarkdownText = () => {
     if (!message.text) return null;
     
-    // Split by double newlines for paragraphs
-    const paragraphs = message.text.split('\n\n');
-    
     return (
-      <>
-        {paragraphs.map((paragraph, index) => {
-          // Check if paragraph contains list items (lines starting with - or *)
-          if (paragraph.includes('\n- ') || paragraph.includes('\n* ')) {
-            // Split into normal text and list items
-            const parts = paragraph.split(/\n(?=[-*] )/);
-            
-            return (
-              <Box key={index} sx={{ mb: 1.5 }}>
-                {parts.map((part, pIndex) => {
-                  if (part.startsWith('- ') || part.startsWith('* ')) {
-                    // List item
-                    return (
-                      <Box key={`item-${pIndex}`} sx={{ display: 'flex', ml: 1, mb: 0.5 }}>
-                        <Typography sx={{ mr: 1 }} variant="body1">•</Typography>
-                        <Typography variant="body1">{part.replace(/^[-*] /, '')}</Typography>
-                      </Box>
-                    );
-                  } else {
-                    // Normal text
-                    return (
-                      <Typography key={`text-${pIndex}`} sx={{ mb: 1 }} variant="body1">
-                        {part}
-                      </Typography>
-                    );
-                  }
-                })}
-              </Box>
-            );
-          } else {
-            // Regular paragraph, preserving single line breaks
-            return (
-              <Typography key={index} sx={{ mb: 1.5, whiteSpace: 'pre-line' }} variant="body1">
-                {paragraph}
-              </Typography>
-            );
+      <Box sx={{ 
+        '& .markdown-content': {
+          '& h1': { fontSize: '1.5rem', fontWeight: 600, mb: 1.5, mt: 2 },
+          '& h2': { fontSize: '1.25rem', fontWeight: 600, mb: 1.5, mt: 1.5 },
+          '& h3': { fontSize: '1.1rem', fontWeight: 600, mb: 1, mt: 1.5 },
+          '& p': { mb: 1.5 },
+          '& ul, & ol': { pl: 2, mb: 1.5 },
+          '& li': { mb: 0.5 },
+          '& code': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            padding: '0.2em 0.4em',
+            borderRadius: '3px',
+            fontFamily: 'monospace'
+          },
+          '& pre': {
+            backgroundColor: alpha(theme.palette.common.black, 0.05),
+            padding: '1em',
+            borderRadius: '4px',
+            overflowX: 'auto',
+            '& code': {
+              backgroundColor: 'transparent',
+              padding: 0
+            }
+          },
+          '& blockquote': {
+            borderLeft: `4px solid ${theme.palette.divider}`,
+            pl: 2,
+            ml: 0,
+            fontStyle: 'italic',
+            color: alpha(theme.palette.text.primary, 0.8)
+          },
+          '& a': {
+            color: theme.palette.primary.main,
+            textDecoration: 'none',
+            '&:hover': {
+              textDecoration: 'underline'
+            }
           }
-        })}
-      </>
+        }
+      }}>
+        <div className="markdown-content">
+          <ReactMarkdown>
+            {message.text}
+          </ReactMarkdown>
+        </div>
+      </Box>
     );
   };
   
@@ -465,11 +470,11 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
       >
         {renderMessageTypeLabel()}
         
-        {/* For thinking messages, we can render differently to normal messages */}
+        {/* Use Markdown renderer instead of the old text formatter */}
         {(message as any)?.message_type === 'thinking' ? (
           renderThinkingContent()
         ) : (
-          renderFormattedText()
+          renderMarkdownText()
         )}
         
         {renderPortfolio()}
@@ -485,7 +490,11 @@ const StructuredMessage: React.FC<StructuredMessageProps> = ({
           }}
           variant="caption"
         >
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(message.timestamp).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          })}
         </Typography>
       </Paper>
     </Box>

@@ -131,12 +131,12 @@ export default function Sidebar({ isMobile = false, onMobileClose }: SidebarProp
     setLoadingBalance(true);
     try {
       // Use the Next.js API route to avoid CORS issues
-      const response = await fetch('/api/total-balance', {
-        method: 'POST',
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
+      const response = await fetch(`${API_BASE_URL}/api/total-balance?${walletAddress}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wallet_address: walletAddress }),
+        }
       });
       
       if (!response.ok) {

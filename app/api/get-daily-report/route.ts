@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
     }
     
     // 轉發請求到後端API
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:8000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:7788';
     const apiUrl = `${backendUrl}/api/get-daily-report?year=${year}&month=${month}&day=${day}`;
-    console.log(`轉發請求到: ${apiUrl}`);
+    console.log(`redirect to: ${apiUrl}`);
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`後端錯誤 (${response.status}): ${errorText}`);
+      console.error(`backend error (${response.status}): ${errorText}`);
       
       // 檢查是否為404 - 數據不存在
       if (response.status === 404) {

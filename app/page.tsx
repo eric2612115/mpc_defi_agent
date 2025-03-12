@@ -467,16 +467,25 @@ export default function HomePage() {
     setErrorMessage(null);
   };
 
-  // Helper function
+  // Improved formatTimestamp function for HomePage.tsx
   const formatTimestamp = (timestamp: any): string => {
     if (!timestamp) {
       return new Date().toISOString();
     }
-    
+  
     try {
-      return new Date(timestamp).toISOString();
+    // Ensure we create a valid date object
+      const date = new Date(timestamp);
+    
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid timestamp format, using current time instead:", timestamp);
+        return new Date().toISOString();
+      }
+    
+      return date.toISOString();
     } catch (e) {
-      console.warn("Invalid timestamp format, using current time instead:", timestamp);
+      console.warn("Error formatting timestamp, using current time instead:", timestamp);
       return new Date().toISOString();
     }
   };

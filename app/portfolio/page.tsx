@@ -421,7 +421,10 @@ export default function PortfolioPage() {
       // Use wallet-transaction-history API
       const walletTransactions = await WalletService.walletControllerSwapHistory({
         safeWalletAddress: addr,
-      }).then((res) => res.transactions).catch((error) => {
+      }).then((res) => res.transactions.map(v => {
+        v.timestamp = new Date(v.timestamp).toLocaleTimeString()
+        return v;
+      })).catch((error) => {
         console.error('Error fetching transactions:', error);
         return [];
       });
@@ -473,7 +476,7 @@ export default function PortfolioPage() {
           details: tx.details,
         })
       }
-      const sortedTransactions = formattedTransactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      const sortedTransactions = formattedTransactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).filter(item => item.amount !== '0 ETH');
       
       setTransactions(sortedTransactions);
     } catch (error) {
@@ -515,7 +518,7 @@ export default function PortfolioPage() {
     Promise.all([
       refetchWallets(),
       walletType === 'personal' ? fetchPersonalAssets() : fetchMultisigAssets(),
-      fetchTransactions(address || '')
+      fetchTransactions(walletType === 'personal' ? address || '' : selectedMultisigWalletAddress)
     ]).finally(() => {
       setRefreshing(false);
       setSuccessMessage('Assets refreshed successfully');
