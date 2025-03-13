@@ -23,6 +23,8 @@ import type { Transaction } from '@/components/portfolio/TransactionHistory';
 import { useQueryWallets } from '@/hooks/useQueryWallets';
 import { AssetService, WalletService } from '@/lib/wallet';
 import { useWithdrawFromSafe } from '@/hooks/useWithdrawFromSafe';
+import usePageView from '@/hooks/usePageView'; 
+
 // import { OdosSwapWidget } from "odos-widgets";
 // import {
 //   defaultInputTokenMap,
@@ -45,6 +47,8 @@ interface MultisigWallet {
 
 export default function PortfolioPage() {
   const theme = useTheme();
+  // add usePageView hook
+  usePageView();
   const { isConnected, address } = useAccount();
   const [tabValue, setTabValue] = useState(0);
   const [search, setSearch] = useState('');
@@ -57,6 +61,7 @@ export default function PortfolioPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [selectedMultisigWalletAddress, setSelectedMultisigWalletAddress] = useState<string>('');
+
 
   // Wallet type
   const walletType = tabValue === 0 ? 'personal' : 'multisig';

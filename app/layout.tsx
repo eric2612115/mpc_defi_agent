@@ -4,19 +4,20 @@ import { Inter, Source_Sans_3 } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import ThemeWrapper from './ThemeWrapper';
+import Analytics from './Analytics'; // 導入 Analytics 元件
 
 // Define fonts
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap'
+  display: 'swap',
 });
 
-const sourceSans = Source_Sans_3({ 
+const sourceSans = Source_Sans_3({
   subsets: ['latin'],
   variable: '--font-source-sans',
   weight: ['300', '400', '500', '600', '700'],
-  display: 'swap'
+  display: 'swap',
 });
 
 // Metadata for SEO
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body>
         <Providers>
           <ThemeWrapper>
+            <Analytics /> {/* 使用 Analytics 元件 */}
             {children}
           </ThemeWrapper>
         </Providers>

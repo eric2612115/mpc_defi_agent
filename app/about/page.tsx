@@ -17,9 +17,12 @@ import FAQ, { FAQItem } from '@/components/about/FAQ';
 import FeatureCard from '@/components/about/FeatureCard';
 import StepList, { Step } from '@/components/about/StepList';
 import TechList, { TechItem } from '@/components/about/TechList';
+import usePageView from '@/hooks/usePageView'; // 導入你的 custom hook
+
 
 export default function AboutPage() {
   const theme = useTheme();
+  usePageView(); // 使用 custom hook
 
   // FAQ 項目
   const faqItems: FAQItem[] = [

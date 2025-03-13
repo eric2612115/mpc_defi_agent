@@ -17,9 +17,11 @@ import { useAccount } from 'wagmi';
 import DateTabs, { DateTabItem } from '@/components/analysis/DateTabs';
 import ArticleCard, { ArticleData } from '@/components/analysis/MarketArticleCard';
 import MarketInsightsFeed from '@/components/analysis/MarketInsightsFeed';
+import usePageView from '@/hooks/usePageView';
 
 const MarketAnalysisPage = () => {
   const theme = useTheme();
+  usePageView(); 
   const { isConnected } = useAccount();
   const [dateTab, setDateTab] = useState(0);
   const [loading, setLoading] = useState(true);

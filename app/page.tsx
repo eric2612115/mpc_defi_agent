@@ -26,7 +26,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import StructuredMessage from '@/components/conversation/StructuredMessage';
 import ThinkingAccordion from '@/components/conversation/ThinkingAccordion'; // Import the new component
 import type { StructuredMessage as StructuredMessageType } from '@/components/conversation/StructuredMessage';
-
+import usePageView from '@/hooks/usePageView';
 import apiClient from '@/lib/apiClient';
 
 // WebSocket URL
@@ -34,6 +34,7 @@ const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://0.0.0.0:8000/ws';
 
 export default function HomePage() {
   const theme = useTheme();
+  usePageView(); 
   const { address, isConnected } = useAccount();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<StructuredMessageType[]>([]);
